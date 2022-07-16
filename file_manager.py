@@ -8,15 +8,13 @@ from datetime import datetime
 class GUI:
 
     def __init__(self):
-        print('hi')
-        print('test new banch')
         self.root = Tk()
         self.root.title('File Manager')
         self.root.configure()
 
         self.root.rowconfigure(0, weight=1)
-        selfself.root.columnconfigure(0, weight=1, uniform='LabelFrame')
-        selfself.root.columnconfigure(1, weight=1, uniform='LabelFrame')
+        self.root.columnconfigure(0, weight=1, uniform='LabelFrame')
+        self.root.columnconfigure(1, weight=1, uniform='LabelFrame')
 
         #
         self.fr_label_1 = ttk.Frame(self.root)
