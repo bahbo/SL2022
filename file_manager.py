@@ -14,7 +14,7 @@ class GUI:
         self.root.title('File Manager')
         self.root.configure()
 
-        self.root.rowconfigure(0, weight=1)
+        self.self.root.rowconfigure(0, weight=1)
         self.root.columnconfigure(0, weight=1, uniform='LabelFrame')
         self.root.columnconfigure(1, weight=1, uniform='LabelFrame')
 
