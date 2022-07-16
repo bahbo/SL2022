@@ -11,7 +11,7 @@ class GUI:
         self.root = Tk()
         self.root.title('File Manager')
         self.root.configure()
-        print('hi')
+
         self.root.rowconfigure(0, weight=1)
         self.root.columnconfigure(0, weight=1, uniform='LabelFrame')
         self.root.columnconfigure(1, weight=1, uniform='LabelFrame')
@@ -54,7 +54,7 @@ class GUI:
             tree.heading('#2', text='Size')
             tree.heading('#3', text='Modify time')
 
-            tree.column('#1', width=300, stretch=False)
+            tree.column('#1')
             tree.column('#2', width=75, stretch=False, anchor=E)
             tree.column('#3', width=120, stretch=False)
 
@@ -130,40 +130,43 @@ class GUI:
         def func(tv):
             for entry in tv.get_children():
                 tv.delete(entry)
-            if self.tree_paths[tv][0] != os.path.abspath(os.sep):
-                tv.insert('', END, tags='dir', text=self.tree_paths[tv][0], values=('/..', 'UP--DIR', datetime.fromtimestamp(self.tree_paths[tv][0].stat().st_mtime).strftime('%b %d %-H:%M'), stat.filemode(os.stat(self.tree_paths[tv][0]).st_mode), 'root','root'))
-            for item in self.tree_paths[tv][1]:
-                tv.insert('', END, tags='dir', text=item.path, values=(f'/{item.name}', item.stat().st_size, datetime.fromtimestamp(item.stat().st_mtime).strftime('%b %d %-H:%M'), stat.filemode(item.stat().st_mode), Path(item.path).owner(), Path(item.path).group()))
-                tv.tag_configure('dir', foreground='light gray')
-            for item in self.tree_paths[tv][2]:
-                tv.insert('', END, tags='file', text=item.path, values=(item.name, item.stat().st_size, datetime.fromtimestamp(item.stat().st_mtime).strftime('%b %d %-H:%M'), stat.filemode(item.stat().st_mode), Path(item.path).owner(), Path(item.path).group()))
-                tv.tag_configure('file', foreground='cyan4')
+
+            for index, item in enumerate(self.tree_paths[tv][1]):
+                tv.insert('', END, tags='dir', text=self.tree_paths[tv][1][index][0],
+                          values=tuple(self.tree_paths[tv][1][index][1:]))
+
+            for index, item in enumerate(self.tree_paths[tv][2]):
+                tv.insert('', END, tags='file', text=self.tree_paths[tv][2][index][0],
+                          values=tuple(self.tree_paths[tv][2][index][1:]))
+
+
 
 
         def get_update_tree(path, tv):
-            #self.tree_paths[tv][0] = os.path.abspath(os.sep)
             self.tree_paths[tv][1].clear()
             self.tree_paths[tv][2].clear()
-            #print(os.path.abspath(os.sep))
-            # if path != '/':
-            #     print(Path(path).parent)
-            print(self.tree_paths[tv][0],os.path.abspath(os.sep) )
-            #if Path(path).parent != os.path.abspath(os.sep):
-            self.tree_paths[tv][0] = Path(path).parent #, tags='file',
+            #self.lf_1.configure(text=path)
 
+            if path != os.path.abspath(os.sep):
+                self.tree_paths[tv][1].append((Path(path).parent, '/..', 'UP--DIR'))
             for item in os.scandir(path):
+                info = [
+                    item.path,
+                    item.name,
+                    item.stat().st_size,
+                    datetime.fromtimestamp(item.stat().st_mtime).strftime('%b %d %-H:%M'),
+                    stat.filemode(item.stat().st_mode),
+                    Path(item.path).owner(),
+                    Path(item.path).group()
+                ]
+
                 if item.is_dir():
-                    self.tree_paths[tv][1].append(item)
-                    # tv.insert('', END, text=item.path, tags='file',
-                    #           values=(f'/{item.name}', item.stat().st_size, datetime.fromtimestamp(item.stat().st_mtime).strftime('%b %d %-H:%M'), stat.filemode(item.stat().st_mode), Path(item.path).owner(), Path(item.path).group()))
+                    info[1] = f'/{item.name}'
+                    self.tree_paths[tv][1].append(info)
                 else:
-                    self.tree_paths[tv][2].append(item)
-                    # tv.insert('', END, text=item.path, tags='dir',
-                    #           values=(item.name, item.stat().st_size, datetime.fromtimestamp(item.stat().st_mtime).strftime('%b %d %-H:%M'), stat.filemode(item.stat().st_mode), Path(item.path).owner(), Path(item.path).group()))
+                    self.tree_paths[tv][2].append(info)
             func(tv)
 
-        get_update_tree(home_path, self.tree_1)
-        get_update_tree(home_path, self.tree_2)
 
 
         def search_alg(search_dir, name):
@@ -183,8 +186,7 @@ class GUI:
             if region == 'heading':
                 pass
             elif region == 'cell':
-                #print(tree_view.item(tree_view.focus())['text'])
-                get_update_tree(tree_view.item(tree_view.focus())['text'],tree_view)
+                get_update_tree(tree_view.item(tree_view.focus())['text'], tree_view)
 
         # def treeview_sort_column(tv, col, reverse):
         #     l = [(tv.set(k, col), k) for k in tv.get_children('')]
@@ -258,6 +260,18 @@ class GUI:
         my_style.configure('TLabelframe',  background='#00458b')  # borderwith=5,
 
 
+
+        self.tree_1.bind('<Double-Button-1>', lambda event, x=self.tree_1: item_selected(event, x))
+        self.tree_1.bind('<F5>', lambda event, x=self.tree_1: tree_info(event, x))
+        self.tree_1.bind('<Return>', lambda event, x=self.tree_1: item_selected(event, x))
+
+        self.tree_2.bind('<Double-Button-1>', lambda event, x=self.tree_2: item_selected(event, x))
+        self.tree_2.bind('<F5>', lambda event, x=self.tree_2: tree_info(event, x))
+        self.tree_2.bind('<Return>', lambda event, x=self.tree_2: item_selected(event, x))
+
+
+        get_update_tree(home_path, self.tree_1)
+        get_update_tree(home_path, self.tree_2)
 
 
         self.root.mainloop()
