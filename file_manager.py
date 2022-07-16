@@ -9,6 +9,7 @@ class GUI:
 
     def __init__(self):
         print('hi')
+        print('test new banch')
         self.root = Tk()
         self.root.title('File Manager')
         self.root.configure()
