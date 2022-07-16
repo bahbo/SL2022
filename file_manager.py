@@ -5,12 +5,11 @@ from pathlib import Path
 from datetime import datetime
 
 
-class GUI:
+class UI:
 
-    def __init__(self):
-        self.root = Tk()
+    def __init__(self, root, logic):
+        self.root = root
         self.root.title('File Manager')
-        self.root.configure()
 
         self.root.rowconfigure(0, weight=1)
         self.root.columnconfigure(0, weight=1, )
@@ -45,41 +44,27 @@ class GUI:
         self.bot_lf_2 = ttk.LabelFrame(self.tree_frame_2, text='GB', labelanchor=SE)
         self.bot_lf_2.pack(fill=X, side=TOP, expand=False)
 
-        active_pos_1 = StringVar()
+        self.active_pos_1 = StringVar()
+        self.but = Label(self.bot_lf_1, textvariable=self.active_pos_1 )
+        self.but.pack(side=LEFT)
 
-        but = Label(self.bot_lf_1, textvariable=active_pos_1 )
-        but.pack(side=LEFT)
-
-        active_pos_2 = StringVar()
-
-        but2 = Label(self.bot_lf_2, textvariable=active_pos_2)
-        but2.pack(side=LEFT)
+        self.active_pos_2 = StringVar()
+        self.but2 = Label(self.bot_lf_2, textvariable=self.active_pos_2)
+        self.but2.pack(side=LEFT)
 
         self.tree_1 = ttk.Treeview(self.lf_1, columns=('#1', '#2', '#3', '#4', '#5', '#6'), show='headings', selectmode='browse')
-        self.tree_1.bind('<Double-Button-1>', lambda event, x=self.tree_1: item_selected(event, x))
-        self.tree_1.bind('<Button-1>', lambda event, x=self.tree_1: update_current_selection(event, x))
-        self.tree_1.bind('<<TreeviewSelect>>', lambda event,x=self.tree_1: print_selected(event,x))
-        #.tree_1.bind('<F5>', lambda event, x=self.tree_1: tree_info(event, x))
-        self.tree_1.bind('<Return>', lambda event, x=self.tree_1: item_selected(event, x))
         self.tree_1.pack(fill='both', side=LEFT, expand=True)
-        self.last_selected_tree_1 = None
-        self.tree_1["displaycolumns"] = ('#1', '#2', '#3')
-        #active_pos_1.set(self.tree_1.item(self.tree_1.focus(), 'values')[0])
+        self.last_selection_tree_1 = None
 
         self.tree_2 = ttk.Treeview(self.lf_2, columns=('#1', '#2', '#3', '#4', '#5', '#6'), show='headings', selectmode='browse')
-        self.tree_2.bind('<Double-Button-1>', lambda event, x=self.tree_2: item_selected(event, x))
-        self.root.bind('<F5>', lambda event: tree_info(event))
-        self.tree_2.bind('<Return>', lambda event, x=self.tree_2: item_selected(event, x))
-        self.tree_2.bind('<<TreeviewSelect>>', lambda event, x=self.tree_2: print_selected(event, x))
         self.tree_2.pack(fill='both', side=LEFT, expand=True)
-        self.last_selected_tree_2 = None
-        self.tree_2["displaycolumns"] = ('#1', '#2', '#3')
-
+        self.last_selection_tree_2 = None
 
         self.tree_paths = {self.tree_1: [None, [None], [None]], self.tree_2: [None, [None], [None]]}
 
 
         for tree in (self.tree_1, self.tree_2):
+            tree["displaycolumns"] = ('#1', '#2', '#3')
             tree.tag_configure('dir', foreground='light gray')
             tree.tag_configure('file', foreground='cyan4')
             tree.heading('#1', text='Name')
@@ -90,31 +75,15 @@ class GUI:
             tree.column('#2', width=75, stretch=False, anchor=E)
             tree.column('#3', width=120, stretch=False)
 
-
-        def proba_1(event):
-            self.last_selected_tree_1 = self.tree_1.focus()
-            self.tree_1.selection_set(self.last_selected_tree_1)
-            self.tree_2.selection_toggle(self.tree_2.selection())
-
-
-        def proba_2(event):
-            self.last_selected_tree_2 = self.tree_2.focus()
-            self.tree_2.selection_set(self.last_selected_tree_2)
-            self.tree_1.selection_toggle(self.tree_1.selection())
-
-        self.tree_1.bind('<FocusIn>', proba_1)
-        self.tree_2.bind('<FocusIn>', proba_2)
-
-
-
-        self.sep = ttk.Separator(self.root,orient='horizontal',).grid(row=3, column=0, sticky="ew")
+#
+        ttk.Separator(self.root, orient='horizontal', ).grid(row=3, column=0, sticky="ew")
 
         self.b_frame = Frame(self.root)
         self.b_frame.grid(row=4, column=0, columnspan=2, sticky=EW)
 
         bttns = [
             ['F1 Help', None],
-            ['F2 Rename', lambda: actve_tv],
+            ['F2 Rename', None],
             ['F3 Cut', None],
             ['F4 Copy', None],
             ['F5 Paste', None],
@@ -126,18 +95,49 @@ class GUI:
         ]
 
         for button in bttns:
-            setattr(self, button[0], ttk.Label(self.b_frame, anchor="center").grid(row=0, column=bttns.index(button), sticky=EW))
+            setattr(self, button[0],
+                    ttk.Label(self.b_frame, anchor="center").grid(row=0, column=bttns.index(button), sticky=EW))
 
         for x in range(len(bttns)):
             self.b_frame.grid_slaves(column=x)[0].config(text=bttns[x][0], takefocus=0, underline=1, )
             self.b_frame.columnconfigure(x, weight=1, uniform='label')
 
-        #
-        def actve_tv():
-            print(self.root.focus_get().item(tree.focus())['values'][0])
+
+
+
+
+
+
+
+        def proba_1(event):
+            self.last_selection_tree_1 = self.tree_1.focus()
+            self.tree_1.selection_set(self.last_selection_tree_1)
+            self.tree_2.selection_toggle(self.tree_2.selection())
+
+
+        def proba_2(event):
+            self.last_selection_tree_2 = self.tree_2.focus()
+            self.tree_2.selection_set(self.last_selection_tree_2)
+            self.tree_1.selection_toggle(self.tree_1.selection())
+
+        self.tree_1.bind('<FocusIn>', proba_1)
+        self.tree_2.bind('<FocusIn>', proba_2)
+
+        self.tree_1.bind('<Double-Button-1>', lambda event, x=self.tree_1: item_selected(event, x))
+        self.tree_2.bind('<Double-Button-1>', lambda event, x=self.tree_2: item_selected(event, x))
+
+        self.tree_1.bind('<Return>', lambda event, x=self.tree_1: item_selected(event, x))
+        self.tree_2.bind('<Return>', lambda event, x=self.tree_2: item_selected(event, x))
+
+        self.tree_1.bind('<<TreeviewSelect>>', lambda event, x=self.tree_1: print_selected(event, x))
+        self.tree_2.bind('<<TreeviewSelect>>', lambda event, x=self.tree_2: print_selected(event, x))
+
+        self.root.bind('<F5>', lambda event: togle_tree_info(event))
+
+        self.tree_1.bind('<Button-1>', lambda event, x=self.tree_1: update_current_selection(event, x))
+
 #
-#
-        def tree_info(event):
+        def togle_tree_info(event):
             for tv in (self.tree_1, self.tree_2):
                 if tv["displaycolumns"] == ('#1', '#2', '#3'):
                     tv["displaycolumns"] = ('#1', '#2', '#3', '#4', '#5', '#6')
@@ -156,10 +156,6 @@ class GUI:
                     # tv.column('#1', width=300, stretch=False)
                     # tv.column('#2', width=75, stretch=False, anchor=E)
                     # tv.column('#3', width=120, stretch=False)
-
-        #print(os.path.expanduser('~'))
-        home_path=os.path.expanduser('~')
-
 
 
         def func(tv):
@@ -211,21 +207,23 @@ class GUI:
             else:
                 self.lf_2.configure(text=path)
 
+#
         def update_current_selection(event, tv):
             print(tv.selection_get()[0])
             selected = tv.focus()
-
-
             if tv == self.tree_1:
                 print(tv.item(tv.focus())['values'])
 
+#
         def print_selected(event, tv):
+            selected = tv.selection()
             if tv == self.tree_1:
-                active_pos_1.set(self.tree_1.item(self.tree_1.selection(),'values')[0])
+                self.active_pos_1.set(tv.item(selected, 'values')[0])
+                print(self.last_selection_tree_1)
             else:
-                active_pos_2.set(self.tree_2.item(self.tree_2.selection(), 'values')[0])
+                self.active_pos_2.set(tv.item(selected, 'values')[0])
 
-
+#
         def search_alg(search_dir, name):
             results = []
             for root, dirs, files in os.walk(search_dir):
@@ -237,7 +235,7 @@ class GUI:
                         results.append(root + '/' + str(dir))
             return results
 
-
+#
         def item_selected(event, tree_view):
             region = tree_view.identify("region", event.x, event.y)
             if region == 'heading':
@@ -316,7 +314,7 @@ class GUI:
 
         my_style.configure('TLabelframe',  background='#00458b')  # borderwith=5,
 
-
+        home_path = os.path.expanduser('~')
         get_update_tree(home_path, self.tree_1)
         get_update_tree(home_path, self.tree_2)
 
@@ -330,5 +328,24 @@ class GUI:
         #
 
         self.root.mainloop()
-interface = GUI()
+
+class MainLogic:
+
+    def __init__(self):
+        pass
+
+
+
+
+root = Tk()
+logic = MainLogic()
+
+gui = UI(root, logic)
+
+#pm.get_tree(interface.lb_1)
+#pm.get_tree(interface.lb_2)
+
+
+root.mainloop()
+
 
