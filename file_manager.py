@@ -13,36 +13,68 @@ class GUI:
         self.root.configure()
 
         self.root.rowconfigure(0, weight=1)
-        self.root.columnconfigure(0, weight=1, uniform='LabelFrame')
-        self.root.columnconfigure(1, weight=1, uniform='LabelFrame')
+        self.root.columnconfigure(0, weight=1, )
+        self.root.columnconfigure(1, weight=1, )
 
         #
-        self.fr_label_1 = ttk.Frame(self.root)
-        self.fr_label_1.grid(row=0, column=0, columnspan=2, sticky=NSEW)
+        self.tree_frame_1 = ttk.Frame(self.root)
+        self.tree_frame_1.grid(row=0, column=0, sticky=NSEW)
+
+        self.tree_frame_2 = ttk.Frame(self.root)
+        self.tree_frame_2.grid(row=0, column=1, sticky=NSEW)
+
+        # self.tree_frame_1.rowconfigure(0, weight=1)
+        # self.tree_frame_1.columnconfigure(0, weight=1, uniform='1')
+        # self.tree_frame_1.columnconfigure(1, weight=1, uniform='1')
+        #
+        # self.tree_frame_2.rowconfigure(0, weight=1)
+        # self.tree_frame_2.columnconfigure(0, weight=1, uniform='1')
+        # self.tree_frame_2.columnconfigure(1, weight=1, uniform='1')
+
+        # self.root.columnconfigure(1, weight=1, uniform='LabelFrame')
+
 
         #
-        self.lf_1 = ttk.LabelFrame(self.fr_label_1, text='current path')
-        self.lf_1.pack(fill='both', side=LEFT, expand=True)
-        self.lf_2 = ttk.LabelFrame(self.fr_label_1, text='current path')
-        self.lf_2.pack(fill='both', side=LEFT, expand=True)
+        self.lf_1 = ttk.LabelFrame(self.tree_frame_1, text='current path')
+        self.lf_1.pack(fill='both', side=TOP, expand=True)
+        self.lf_2 = ttk.LabelFrame(self.tree_frame_2, text='current path')
+        self.lf_2.pack(fill='both', side=TOP, expand=True)
 
-        #
+        self.bot_lf_1 = ttk.LabelFrame(self.tree_frame_1, text='GB', labelanchor=SE)
+        self.bot_lf_1.pack(fill=X, side=TOP, expand=False)
+        self.bot_lf_2 = ttk.LabelFrame(self.tree_frame_2, text='GB', labelanchor=SE)
+        self.bot_lf_2.pack(fill=X, side=TOP, expand=False)
+
+        active_pos_1 = StringVar()
+
+        but = Label(self.bot_lf_1, textvariable=active_pos_1 )
+        but.pack(side=LEFT)
+
+        active_pos_2 = StringVar()
+
+        but2 = Label(self.bot_lf_2, textvariable=active_pos_2)
+        but2.pack(side=LEFT)
 
         self.tree_1 = ttk.Treeview(self.lf_1, columns=('#1', '#2', '#3', '#4', '#5', '#6'), show='headings', selectmode='browse')
         self.tree_1.bind('<Double-Button-1>', lambda event, x=self.tree_1: item_selected(event, x))
-        self.tree_1.bind('<F5>', lambda event, x=self.tree_1: tree_info(event, x))
+        self.tree_1.bind('<Button-1>', lambda event, x=self.tree_1: update_current_selection(event, x))
+        self.tree_1.bind('<<TreeviewSelect>>', lambda event,x=self.tree_1: print_selected(event,x))
+        #.tree_1.bind('<F5>', lambda event, x=self.tree_1: tree_info(event, x))
         self.tree_1.bind('<Return>', lambda event, x=self.tree_1: item_selected(event, x))
         self.tree_1.pack(fill='both', side=LEFT, expand=True)
-        #self.last_selected_tree_1 = None
+        self.last_selected_tree_1 = None
         self.tree_1["displaycolumns"] = ('#1', '#2', '#3')
+        #active_pos_1.set(self.tree_1.item(self.tree_1.focus(), 'values')[0])
 
         self.tree_2 = ttk.Treeview(self.lf_2, columns=('#1', '#2', '#3', '#4', '#5', '#6'), show='headings', selectmode='browse')
         self.tree_2.bind('<Double-Button-1>', lambda event, x=self.tree_2: item_selected(event, x))
-        self.tree_2.bind('<F5>', lambda event, x=self.tree_2: tree_info(event, x))
+        self.root.bind('<F5>', lambda event: tree_info(event))
         self.tree_2.bind('<Return>', lambda event, x=self.tree_2: item_selected(event, x))
+        self.tree_2.bind('<<TreeviewSelect>>', lambda event, x=self.tree_2: print_selected(event, x))
         self.tree_2.pack(fill='both', side=LEFT, expand=True)
-        #self.last_selected_tree_2 = None
+        self.last_selected_tree_2 = None
         self.tree_2["displaycolumns"] = ('#1', '#2', '#3')
+
 
         self.tree_paths = {self.tree_1: [None, [None], [None]], self.tree_2: [None, [None], [None]]}
 
@@ -64,6 +96,7 @@ class GUI:
             self.tree_1.selection_set(self.last_selected_tree_1)
             self.tree_2.selection_toggle(self.tree_2.selection())
 
+
         def proba_2(event):
             self.last_selected_tree_2 = self.tree_2.focus()
             self.tree_2.selection_set(self.last_selected_tree_2)
@@ -71,6 +104,7 @@ class GUI:
 
         self.tree_1.bind('<FocusIn>', proba_1)
         self.tree_2.bind('<FocusIn>', proba_2)
+
 
 
         self.sep = ttk.Separator(self.root,orient='horizontal',).grid(row=3, column=0, sticky="ew")
@@ -103,24 +137,25 @@ class GUI:
             print(self.root.focus_get().item(tree.focus())['values'][0])
 #
 #
-        def tree_info(event, tv):
-            if tv["displaycolumns"] == ('#1', '#2', '#3'):
-                tv["displaycolumns"] = ('#1', '#2', '#3', '#4', '#5', '#6')
-                tv.heading('#4', text='Permissions')
-                tv.heading('#5', text='Owner')
-                tv.heading('#6', text='Group')
+        def tree_info(event):
+            for tv in (self.tree_1, self.tree_2):
+                if tv["displaycolumns"] == ('#1', '#2', '#3'):
+                    tv["displaycolumns"] = ('#1', '#2', '#3', '#4', '#5', '#6')
+                    tv.heading('#4', text='Permissions')
+                    tv.heading('#5', text='Owner')
+                    tv.heading('#6', text='Group')
 
-                # tv.column('#1', width=300, stretch=False)
-                # tv.column('#2', width=75, stretch=False, anchor=E)
-                # tv.column('#3', width=120, stretch=False)
-                tv.column('#4', width=120, stretch=False)
-                tv.column('#5', width=60, stretch=False, anchor=CENTER)
-                tv.column('#6', width=60, stretch=False, anchor=CENTER)
-            else:
-                tv["displaycolumns"] = ('#1', '#2', '#3')
-                # tv.column('#1', width=300, stretch=False)
-                # tv.column('#2', width=75, stretch=False, anchor=E)
-                # tv.column('#3', width=120, stretch=False)
+                    # tv.column('#1', width=300, stretch=False)
+                    # tv.column('#2', width=75, stretch=False, anchor=E)
+                    # tv.column('#3', width=120, stretch=False)
+                    tv.column('#4', width=120, stretch=False)
+                    tv.column('#5', width=60, stretch=False, anchor=CENTER)
+                    tv.column('#6', width=60, stretch=False, anchor=CENTER)
+                else:
+                    tv["displaycolumns"] = ('#1', '#2', '#3')
+                    # tv.column('#1', width=300, stretch=False)
+                    # tv.column('#2', width=75, stretch=False, anchor=E)
+                    # tv.column('#3', width=120, stretch=False)
 
         #print(os.path.expanduser('~'))
         home_path=os.path.expanduser('~')
@@ -145,7 +180,6 @@ class GUI:
         def get_update_tree(path, tv):
             self.tree_paths[tv][1].clear()
             self.tree_paths[tv][2].clear()
-            #self.lf_1.configure(text=path)
 
             if path != os.path.abspath(os.sep):
                 self.tree_paths[tv][1].append((Path(path).parent, '/..', 'UP--DIR'))
@@ -166,7 +200,30 @@ class GUI:
                 else:
                     self.tree_paths[tv][2].append(info)
             func(tv)
+            update_tree_path(tv, path)
+            tv.focus(tv.get_children()[0])
 
+
+
+        def update_tree_path(tv, path):
+            if tv == self.tree_1:
+                self.lf_1.configure(text=path)
+            else:
+                self.lf_2.configure(text=path)
+
+        def update_current_selection(event, tv):
+            print(tv.selection_get()[0])
+            selected = tv.focus()
+
+
+            if tv == self.tree_1:
+                print(tv.item(tv.focus())['values'])
+
+        def print_selected(event, tv):
+            if tv == self.tree_1:
+                active_pos_1.set(self.tree_1.item(self.tree_1.selection(),'values')[0])
+            else:
+                active_pos_2.set(self.tree_2.item(self.tree_2.selection(), 'values')[0])
 
 
         def search_alg(search_dir, name):
@@ -260,19 +317,17 @@ class GUI:
         my_style.configure('TLabelframe',  background='#00458b')  # borderwith=5,
 
 
-
-        self.tree_1.bind('<Double-Button-1>', lambda event, x=self.tree_1: item_selected(event, x))
-        self.tree_1.bind('<F5>', lambda event, x=self.tree_1: tree_info(event, x))
-        self.tree_1.bind('<Return>', lambda event, x=self.tree_1: item_selected(event, x))
-
-        self.tree_2.bind('<Double-Button-1>', lambda event, x=self.tree_2: item_selected(event, x))
-        self.tree_2.bind('<F5>', lambda event, x=self.tree_2: tree_info(event, x))
-        self.tree_2.bind('<Return>', lambda event, x=self.tree_2: item_selected(event, x))
-
-
         get_update_tree(home_path, self.tree_1)
         get_update_tree(home_path, self.tree_2)
 
+        # self.tree_1.focus(self.tree_1.get_children()[0])
+        # self.tree_1.focus_set()
+        # #self.tree_1.selection_set(self.tree_1.get_children()[0])
+        #
+        # self.tree_2.focus(self.tree_2.get_children()[0])
+        # #self.tree_2.selection_set(self.tree_2.get_children()[0])
+        # self.tree_2.selection_toggle(self.tree_2.selection())
+        #
 
         self.root.mainloop()
 interface = GUI()
