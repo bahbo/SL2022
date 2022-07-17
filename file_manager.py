@@ -76,6 +76,7 @@ class UI:
             tree.column('#2', width=75, stretch=False, anchor=E)
             tree.column('#3', width=120, stretch=False)
 
+
 #
         ttk.Separator(self.root, orient='horizontal', ).grid(row=3, column=0, sticky="ew")
 
@@ -147,46 +148,51 @@ class UI:
                     # tv.column('#3', width=120, stretch=False)
 
 
-        def func(tv):
+        def func(tv,path):
             for entry in tv.get_children():
                 tv.delete(entry)
+            print(logic.get_update_tree(path))
+            dir_items = logic.get_update_tree(path)
+            for index, item in enumerate(dir_items[1]):
+                tv.insert('', END, tags='dir', text=logic.tree_paths[1][index][0],
+                          values=tuple(logic.tree_paths[1][index][1:]))
 
-            for index, item in enumerate(self.tree_paths[tv][1]):
-                tv.insert('', END, tags='dir', text=self.tree_paths[tv][1][index][0],
-                          values=tuple(self.tree_paths[tv][1][index][1:]))
+            for index, item in enumerate(dir_items[2]):
+                tv.insert('', END, tags='file', text=logic.tree_paths[2][index][0],
+                          values=tuple(logic.tree_paths[2][index][1:]))
 
-            for index, item in enumerate(self.tree_paths[tv][2]):
-                tv.insert('', END, tags='file', text=self.tree_paths[tv][2][index][0],
-                          values=tuple(self.tree_paths[tv][2][index][1:]))
+        #print(logic.get_update_tree(os.path.expanduser('~')))
+        #home_path = os.path.expanduser('~')
+        func(self.tree_1, os.path.expanduser('~'))
+        func(self.tree_2, os.path.expanduser('~'))
 
 
 
-
-        def get_update_tree(path, tv):
-            self.tree_paths[tv][1].clear()
-            self.tree_paths[tv][2].clear()
-
-            if path != os.path.abspath(os.sep):
-                self.tree_paths[tv][1].append((Path(path).parent, '/..', 'UP--DIR'))
-            for item in os.scandir(path):
-                info = [
-                    item.path,
-                    item.name,
-                    item.stat().st_size,
-                    datetime.fromtimestamp(item.stat().st_mtime).strftime('%b %d %-H:%M'),
-                    stat.filemode(item.stat().st_mode),
-                    Path(item.path).owner(),
-                    Path(item.path).group()
-                ]
-
-                if item.is_dir():
-                    info[1] = f'/{item.name}'
-                    self.tree_paths[tv][1].append(info)
-                else:
-                    self.tree_paths[tv][2].append(info)
-            func(tv)
-            update_tree_home_path(tv, path)
-            tv.focus(tv.get_children()[0])
+        # def get_update_tree(path, tv):
+        #     self.tree_paths[tv][1].clear()
+        #     self.tree_paths[tv][2].clear()
+        #
+        #     if path != os.path.abspath(os.sep):
+        #         self.tree_paths[tv][1].append((Path(path).parent, '/..', 'UP--DIR'))
+        #     for item in os.scandir(path):
+        #         info = [
+        #             item.path,
+        #             item.name,
+        #             item.stat().st_size,
+        #             datetime.fromtimestamp(item.stat().st_mtime).strftime('%b %d %-H:%M'),
+        #             stat.filemode(item.stat().st_mode),
+        #             Path(item.path).owner(),
+        #             Path(item.path).group()
+        #         ]
+        #
+        #         if item.is_dir():
+        #             info[1] = f'/{item.name}'
+        #             self.tree_paths[tv][1].append(info)
+        #         else:
+        #             self.tree_paths[tv][2].append(info)
+        #     func(tv)
+        #     update_tree_home_path(tv, path)
+        #     tv.focus(tv.get_children()[0])
 
 
 
@@ -252,7 +258,8 @@ class UI:
             if region == 'heading':
                 pass
             elif region == 'cell':
-                get_update_tree(tree_view.item(tree_view.focus())['text'], tree_view)
+                print(tree_view.item(tree_view.focus())['text'])
+                func(tree_view, tree_view.item(tree_view.focus())['text'] )
 
         # def treeview_sort_column(tv, col, reverse):
         #     l = [(tv.set(k, col), k) for k in tv.get_children('')]
@@ -325,9 +332,6 @@ class UI:
 
         my_style.configure('TLabelframe',  background='#00458b')  # borderwith=5,
 
-        home_path = os.path.expanduser('~')
-        get_update_tree(home_path, self.tree_1)
-        get_update_tree(home_path, self.tree_2)
 
 
         self.root.mainloop()
@@ -335,15 +339,48 @@ class UI:
 class MainLogic:
 
     def __init__(self):
-        pass
+        self.current_folder = os.path.expanduser('~')
+        self.current_selection = None
+        self.tree_paths = [[None], [None], [None]]
+
+    def get_update_tree(self, path):
+        self.tree_paths[1].clear()
+        self.tree_paths[2].clear()
+
+        if path != os.path.abspath(os.sep):
+            up_dir = (Path(path).parent, '/..', 'UP--DIR')
+            self.tree_paths[1].append(up_dir)
+        for item in os.scandir(path):
+            info = [
+                item.path,
+                item.name,
+                item.stat().st_size,
+                datetime.fromtimestamp(item.stat().st_mtime).strftime('%b %d %-H:%M'),
+                stat.filemode(item.stat().st_mode),
+                Path(item.path).owner(),
+                Path(item.path).group()]
+            if item.is_dir():
+                info[1] = f'/{item.name}'
+                self.tree_paths[1].append(info)
+            else:
+                self.tree_paths[2].append(info)
+        return self.tree_paths
 
 
 
 
 root = Tk()
-logic = MainLogic()
 
-gui = UI(root, logic)
+logic1 = MainLogic()
+logic1.get_update_tree(logic1.current_folder)
+
+
+
+# logic2 = MainLogic()
+# logic2.get_update_tree(logic2.current_folder)
+
+gui = UI(root, logic1)
+
 
 #pm.get_tree(interface.lb_1)
 #pm.get_tree(interface.lb_2)
