@@ -11,6 +11,43 @@ class UI:
         self.root = root
         self.root.title('File Manager')
 
+        self.my_style = ttk.Style()
+        #my_style.theme_use('default')
+        #print(my_style.theme_names())
+        # my_style.configure('.', font=('Monospace', 11), bg='SteelBlue3', forground='blue')
+        self.my_style.configure('TLabel',
+                                background='cyan4',
+                                font=('Monospace', 11))
+
+        self.my_style.configure('Treeview.Heading',
+                                # relief=FLAT,
+                                font=('Monospace', 11),
+                                background='#00458b',
+                                foreground='yellow')
+        self.my_style.map('Treeview.Heading',
+                          foreground=[('pressed', 'yellow'), ('active', 'yellow')],
+                          background=[('pressed', '#00458b'), ('active', '#00458b')])
+
+        self.my_style.configure('Treeview',
+                                fieldbackground='#00458b',
+                                borderwidth=0,
+                                background='#00458b',
+                                font=('Monospace', 11))
+
+        self.my_style.map('Treeview',
+                          background=[('selected', 'cyan4')],
+                          foreground=[('selected', 'black')])
+
+        # my_style.map('TButton', background=[('pressed', 'cyan4'), ('active', 'cyan4')])
+        self.my_style.configure('TSeparator', background='red')
+
+        self.my_style.configure('TLabelframe.Label',
+                                foreground='black',
+                                background='green',
+                                font=('Monospace', 11))
+
+        self.my_style.configure('TLabelframe',  background='#00458b')  # borderwith=5,
+
         self.root.rowconfigure(0, weight=1)
         self.root.columnconfigure(0, weight=1, )
         self.root.columnconfigure(1, weight=1, )
@@ -104,6 +141,18 @@ class UI:
             self.b_frame.grid_slaves(column=x)[0].config(text=bttns[x][0], takefocus=0, underline=1, )
             self.b_frame.columnconfigure(x, weight=1, uniform='label')
 
+        self.tree_1.bind('<Double-Button-1>', lambda event, x=self.tree_1: self.item_selected(event, x))
+        self.tree_2.bind('<Double-Button-1>', lambda event, x=self.tree_2: self.item_selected(event, x))
+
+        self.tree_1.bind('<Return>', lambda event, x=self.tree_1: self.item_selected(event, x))
+        self.tree_2.bind('<Return>', lambda event, x=self.tree_2: self.item_selected(event, x))
+
+        self.tree_1.bind('<<TreeviewSelect>>', lambda event, x=self.tree_1: self.update_active_position(event, x))
+        self.tree_2.bind('<<TreeviewSelect>>', lambda event, x=self.tree_2: self.update_active_position(event, x))
+
+        self.root.bind('<F5>', lambda event: self.togle_tree_info(event))
+
+        # self.tree_1.bind('<Button-1>', lambda event, x=self.tree_1: update_current_selection(event, x))
 
 
 
@@ -113,58 +162,55 @@ class UI:
 
 
 
-        self.tree_1.bind('<Double-Button-1>', lambda event, x=self.tree_1: item_selected(event, x))
-        self.tree_2.bind('<Double-Button-1>', lambda event, x=self.tree_2: item_selected(event, x))
 
-        self.tree_1.bind('<Return>', lambda event, x=self.tree_1: item_selected(event, x))
-        self.tree_2.bind('<Return>', lambda event, x=self.tree_2: item_selected(event, x))
 
-        self.tree_1.bind('<<TreeviewSelect>>', lambda event, x=self.tree_1: update_active_position(event, x))
-        self.tree_2.bind('<<TreeviewSelect>>', lambda event, x=self.tree_2: update_active_position(event, x))
 
-        self.root.bind('<F5>', lambda event: togle_tree_info(event))
 
-#        self.tree_1.bind('<Button-1>', lambda event, x=self.tree_1: update_current_selection(event, x))
+
+    def togle_tree_info(self, event):
+        for tv in (self.tree_1, self.tree_2):
+            if tv["displaycolumns"] == ('#1', '#2', '#3'):
+                tv["displaycolumns"] = ('#1', '#2', '#3', '#4', '#5', '#6')
+                tv.heading('#4', text='Permissions')
+                tv.heading('#5', text='Owner')
+                tv.heading('#6', text='Group')
+
+                # tv.column('#1', width=300, stretch=False)
+                # tv.column('#2', width=75, stretch=False, anchor=E)
+                # tv.column('#3', width=120, stretch=False)
+                tv.column('#4', width=120, stretch=False)
+                tv.column('#5', width=60, stretch=False, anchor=CENTER)
+                tv.column('#6', width=60, stretch=False, anchor=CENTER)
+            else:
+                tv["displaycolumns"] = ('#1', '#2', '#3')
+                # tv.column('#1', width=300, stretch=False)
+                # tv.column('#2', width=75, stretch=False, anchor=E)
+                # tv.column('#3', width=120, stretch=False)
 
 #
-        def togle_tree_info(event):
-            for tv in (self.tree_1, self.tree_2):
-                if tv["displaycolumns"] == ('#1', '#2', '#3'):
-                    tv["displaycolumns"] = ('#1', '#2', '#3', '#4', '#5', '#6')
-                    tv.heading('#4', text='Permissions')
-                    tv.heading('#5', text='Owner')
-                    tv.heading('#6', text='Group')
+    def update_tree_home_path(self, tv, path):
+        if tv == self.tree_1:
+            self.lf_1.configure(text=path)
+        else:
+            self.lf_2.configure(text=path)
 
-                    # tv.column('#1', width=300, stretch=False)
-                    # tv.column('#2', width=75, stretch=False, anchor=E)
-                    # tv.column('#3', width=120, stretch=False)
-                    tv.column('#4', width=120, stretch=False)
-                    tv.column('#5', width=60, stretch=False, anchor=CENTER)
-                    tv.column('#6', width=60, stretch=False, anchor=CENTER)
-                else:
-                    tv["displaycolumns"] = ('#1', '#2', '#3')
-                    # tv.column('#1', width=300, stretch=False)
-                    # tv.column('#2', width=75, stretch=False, anchor=E)
-                    # tv.column('#3', width=120, stretch=False)
+    def func(self, logic, tv, path):
+        self.update_tree_home_path(tv, path)
+
+        for entry in tv.get_children():
+            tv.delete(entry)
+
+        dir_items = logic.get_update_tree(path)
+        for index, item in enumerate(dir_items[1]):
+            tv.insert('', END, tags='dir', text=logic.tree_paths[1][index][0],
+                      values=tuple(logic.tree_paths[1][index][1:]))
+
+        for index, item in enumerate(dir_items[2]):
+            tv.insert('', END, tags='file', text=logic.tree_paths[2][index][0],
+                      values=tuple(logic.tree_paths[2][index][1:]))
 
 
-        def func(tv,path):
-            for entry in tv.get_children():
-                tv.delete(entry)
-            print(logic.get_update_tree(path))
-            dir_items = logic.get_update_tree(path)
-            for index, item in enumerate(dir_items[1]):
-                tv.insert('', END, tags='dir', text=logic.tree_paths[1][index][0],
-                          values=tuple(logic.tree_paths[1][index][1:]))
 
-            for index, item in enumerate(dir_items[2]):
-                tv.insert('', END, tags='file', text=logic.tree_paths[2][index][0],
-                          values=tuple(logic.tree_paths[2][index][1:]))
-
-        #print(logic.get_update_tree(os.path.expanduser('~')))
-        #home_path = os.path.expanduser('~')
-        func(self.tree_1, os.path.expanduser('~'))
-        func(self.tree_2, os.path.expanduser('~'))
 
 
 
@@ -196,45 +242,41 @@ class UI:
 
 
 
-        def update_tree_home_path(tv, path):
-            if tv == self.tree_1:
-                self.lf_1.configure(text=path)
-            else:
-                self.lf_2.configure(text=path)
 
 
-        def update_active_position(event, tv):
-            selected = tv.selection()
-            print(selected)
-            if tv == self.tree_1:
-                self.active_pos_1.set(tv.item(selected, 'values')[0])
-                #print(self.last_selection_tree_1)
-            else:
-                self.active_pos_2.set(tv.item(selected, 'values')[0])
 
-        # def proba_1(event):
-        #     self.last_selection_tree_1 = self.tree_1.focus()
-        #     self.tree_1.selection_set(self.last_selection_tree_1)
-        #     self.tree_2.selection_toggle(self.tree_2.selection())
-        #
-        #
-        # def proba_2(event):
-        #     self.last_selection_tree_2 = self.tree_2.focus()
-        #     self.tree_2.selection_set(self.last_selection_tree_2)
-        #     self.tree_1.selection_toggle(self.tree_1.selection())
+    def update_active_position(self, event, tv):
+        selected = tv.selection()
+        print(selected)
+        if tv == self.tree_1:
+            self.active_pos_1.set(tv.item(selected, 'values')[0])
+            #print(self.last_selection_tree_1)
+        else:
+            self.active_pos_2.set(tv.item(selected, 'values')[0])
 
-        # self.tree_1.bind('<FocusIn>', proba_1)
-        # self.tree_2.bind('<FocusIn>', proba_2)
+    # def proba_1(event):
+    #     self.last_selection_tree_1 = self.tree_1.focus()
+    #     self.tree_1.selection_set(self.last_selection_tree_1)
+    #     self.tree_2.selection_toggle(self.tree_2.selection())
+    #
+    #
+    # def proba_2(event):
+    #     self.last_selection_tree_2 = self.tree_2.focus()
+    #     self.tree_2.selection_set(self.last_selection_tree_2)
+    #     self.tree_1.selection_toggle(self.tree_1.selection())
+
+    # self.tree_1.bind('<FocusIn>', proba_1)
+    # self.tree_2.bind('<FocusIn>', proba_2)
 
 
-        # self.tree_1.focus(self.tree_1.get_children()[0])
-        # self.tree_1.focus_set()
-        # #self.tree_1.selection_set(self.tree_1.get_children()[0])
-        #
-        # self.tree_2.focus(self.tree_2.get_children()[0])
-        # #self.tree_2.selection_set(self.tree_2.get_children()[0])
-        # self.tree_2.selection_toggle(self.tree_2.selection())
-        #
+    # self.tree_1.focus(self.tree_1.get_children()[0])
+    # self.tree_1.focus_set()
+    # #self.tree_1.selection_set(self.tree_1.get_children()[0])
+    #
+    # self.tree_2.focus(self.tree_2.get_children()[0])
+    # #self.tree_2.selection_set(self.tree_2.get_children()[0])
+    # self.tree_2.selection_toggle(self.tree_2.selection())
+    #
 
 
 
@@ -253,37 +295,35 @@ class UI:
             return results
 
 #
-        def item_selected(event, tree_view):
-            region = tree_view.identify("region", event.x, event.y)
-            if region == 'heading':
-                pass
-            elif region == 'cell':
-                print(tree_view.item(tree_view.focus())['text'])
-                func(tree_view, tree_view.item(tree_view.focus())['text'] )
+    def item_selected(self, event, tree_view):
+        region = tree_view.identify("region", event.x, event.y)
+        if region == 'heading':
+            pass
+        elif region == 'cell':
+            print(tree_view.item(tree_view.focus())['text'])
+            func(tree_view, tree_view.item(tree_view.focus())['text'] )
 
-        # def treeview_sort_column(tv, col, reverse):
-        #     l = [(tv.set(k, col), k) for k in tv.get_children('')]
-        #     print(l)
-        #     l.sort(reverse=reverse)
-        #
-        #
-        #     # rearrange items in sorted positions
-        #     for index, (val, k) in enumerate(l):
-        #         tv.move(k, '', index)
-        #
-        #     # reverse sort next time
-        #     tv.heading(col, text=col, command=lambda _col=col: \
-        #         treeview_sort_column(tv, _col, not reverse))
-        #
-        #
-        # columns = ('#1', '#2', '#3')
-        #
-        #
-        # for col in columns:
-        #     self.tree_1.heading(col, text=col, command=lambda _col=col: \
-        #         treeview_sort_column(tree, _col, False))
-
-
+    # def treeview_sort_column(tv, col, reverse):
+    #     l = [(tv.set(k, col), k) for k in tv.get_children('')]
+    #     print(l)
+    #     l.sort(reverse=reverse)
+    #
+    #
+    #     # rearrange items in sorted positions
+    #     for index, (val, k) in enumerate(l):
+    #         tv.move(k, '', index)
+    #
+    #     # reverse sort next time
+    #     tv.heading(col, text=col, command=lambda _col=col: \
+    #         treeview_sort_column(tv, _col, not reverse))
+    #
+    #
+    # columns = ('#1', '#2', '#3')
+    #
+    #
+    # for col in columns:
+    #     self.tree_1.heading(col, text=col, command=lambda _col=col: \
+    #         treeview_sort_column(tree, _col, False))
 
 
 
@@ -294,47 +334,6 @@ class UI:
 
 
 
-
-        my_style = ttk.Style()
-        #my_style.theme_use('default')
-        #print(my_style.theme_names())
-        # my_style.configure('.', font=('Monospace', 11), bg='SteelBlue3', forground='blue')
-        my_style.configure('TLabel',
-                           background='cyan4',
-                           font=('Monospace', 11))
-
-        my_style.configure('Treeview.Heading',
-                           # relief=FLAT,
-                           font=('Monospace', 11),
-                           background='#00458b',
-                           foreground='yellow')
-        my_style.map('Treeview.Heading',
-                     foreground=[('pressed', 'yellow'), ('active', 'yellow')],
-                     background=[('pressed', '#00458b'), ('active', '#00458b')])
-
-        my_style.configure('Treeview',
-                           fieldbackground='#00458b',
-                           borderwidth=0,
-                           background='#00458b',
-                           font=('Monospace', 11))
-
-        my_style.map('Treeview',
-                     background=[('selected', 'cyan4')],
-                     foreground=[('selected', 'black')])
-
-        # my_style.map('TButton', background=[('pressed', 'cyan4'), ('active', 'cyan4')])
-        my_style.configure('TSeparator', background='red')
-
-        my_style.configure('TLabelframe.Label',
-                           foreground='black',
-                           background='green',
-                           font=('Monospace', 11))
-
-        my_style.configure('TLabelframe',  background='#00458b')  # borderwith=5,
-
-
-
-        self.root.mainloop()
 
 class MainLogic:
 
@@ -375,15 +374,10 @@ logic1 = MainLogic()
 logic1.get_update_tree(logic1.current_folder)
 
 
-
-# logic2 = MainLogic()
-# logic2.get_update_tree(logic2.current_folder)
-
 gui = UI(root, logic1)
 
-
-#pm.get_tree(interface.lb_1)
-#pm.get_tree(interface.lb_2)
+gui.func(logic1, gui.tree_1, os.path.expanduser('~'))
+gui.func(logic1, gui.tree_2, os.path.expanduser('~'))
 
 
 root.mainloop()
