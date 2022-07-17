@@ -32,15 +32,16 @@ class UI:
 
         # self.root.columnconfigure(1, weight=1, uniform='LabelFrame')
 
-
         #
         self.lf_1 = ttk.LabelFrame(self.tree_frame_1, text='current path')
         self.lf_1.pack(fill='both', side=TOP, expand=True)
+
         self.lf_2 = ttk.LabelFrame(self.tree_frame_2, text='current path')
         self.lf_2.pack(fill='both', side=TOP, expand=True)
 
         self.bot_lf_1 = ttk.LabelFrame(self.tree_frame_1, text='GB', labelanchor=SE)
         self.bot_lf_1.pack(fill=X, side=TOP, expand=False)
+
         self.bot_lf_2 = ttk.LabelFrame(self.tree_frame_2, text='GB', labelanchor=SE)
         self.bot_lf_2.pack(fill=X, side=TOP, expand=False)
 
@@ -54,11 +55,11 @@ class UI:
 
         self.tree_1 = ttk.Treeview(self.lf_1, columns=('#1', '#2', '#3', '#4', '#5', '#6'), show='headings', selectmode='browse')
         self.tree_1.pack(fill='both', side=LEFT, expand=True)
-        self.last_selection_tree_1 = None
+        #self.last_selection_tree_1 = None
 
         self.tree_2 = ttk.Treeview(self.lf_2, columns=('#1', '#2', '#3', '#4', '#5', '#6'), show='headings', selectmode='browse')
         self.tree_2.pack(fill='both', side=LEFT, expand=True)
-        self.last_selection_tree_2 = None
+        #self.last_selection_tree_2 = None
 
         self.tree_paths = {self.tree_1: [None, [None], [None]], self.tree_2: [None, [None], [None]]}
 
@@ -109,19 +110,7 @@ class UI:
 
 
 
-        def proba_1(event):
-            self.last_selection_tree_1 = self.tree_1.focus()
-            self.tree_1.selection_set(self.last_selection_tree_1)
-            self.tree_2.selection_toggle(self.tree_2.selection())
 
-
-        def proba_2(event):
-            self.last_selection_tree_2 = self.tree_2.focus()
-            self.tree_2.selection_set(self.last_selection_tree_2)
-            self.tree_1.selection_toggle(self.tree_1.selection())
-
-        self.tree_1.bind('<FocusIn>', proba_1)
-        self.tree_2.bind('<FocusIn>', proba_2)
 
         self.tree_1.bind('<Double-Button-1>', lambda event, x=self.tree_1: item_selected(event, x))
         self.tree_2.bind('<Double-Button-1>', lambda event, x=self.tree_2: item_selected(event, x))
@@ -129,12 +118,12 @@ class UI:
         self.tree_1.bind('<Return>', lambda event, x=self.tree_1: item_selected(event, x))
         self.tree_2.bind('<Return>', lambda event, x=self.tree_2: item_selected(event, x))
 
-        self.tree_1.bind('<<TreeviewSelect>>', lambda event, x=self.tree_1: print_selected(event, x))
-        self.tree_2.bind('<<TreeviewSelect>>', lambda event, x=self.tree_2: print_selected(event, x))
+        self.tree_1.bind('<<TreeviewSelect>>', lambda event, x=self.tree_1: update_active_position(event, x))
+        self.tree_2.bind('<<TreeviewSelect>>', lambda event, x=self.tree_2: update_active_position(event, x))
 
         self.root.bind('<F5>', lambda event: togle_tree_info(event))
 
-        self.tree_1.bind('<Button-1>', lambda event, x=self.tree_1: update_current_selection(event, x))
+#        self.tree_1.bind('<Button-1>', lambda event, x=self.tree_1: update_current_selection(event, x))
 
 #
         def togle_tree_info(event):
@@ -196,32 +185,54 @@ class UI:
                 else:
                     self.tree_paths[tv][2].append(info)
             func(tv)
-            update_tree_path(tv, path)
+            update_tree_home_path(tv, path)
             tv.focus(tv.get_children()[0])
 
 
 
-        def update_tree_path(tv, path):
+        def update_tree_home_path(tv, path):
             if tv == self.tree_1:
                 self.lf_1.configure(text=path)
             else:
                 self.lf_2.configure(text=path)
 
-#
-        def update_current_selection(event, tv):
-            print(tv.selection_get()[0])
-            selected = tv.focus()
-            if tv == self.tree_1:
-                print(tv.item(tv.focus())['values'])
 
-#
-        def print_selected(event, tv):
+        def update_active_position(event, tv):
             selected = tv.selection()
+            print(selected)
             if tv == self.tree_1:
                 self.active_pos_1.set(tv.item(selected, 'values')[0])
-                print(self.last_selection_tree_1)
+                #print(self.last_selection_tree_1)
             else:
                 self.active_pos_2.set(tv.item(selected, 'values')[0])
+
+        # def proba_1(event):
+        #     self.last_selection_tree_1 = self.tree_1.focus()
+        #     self.tree_1.selection_set(self.last_selection_tree_1)
+        #     self.tree_2.selection_toggle(self.tree_2.selection())
+        #
+        #
+        # def proba_2(event):
+        #     self.last_selection_tree_2 = self.tree_2.focus()
+        #     self.tree_2.selection_set(self.last_selection_tree_2)
+        #     self.tree_1.selection_toggle(self.tree_1.selection())
+
+        # self.tree_1.bind('<FocusIn>', proba_1)
+        # self.tree_2.bind('<FocusIn>', proba_2)
+
+
+        # self.tree_1.focus(self.tree_1.get_children()[0])
+        # self.tree_1.focus_set()
+        # #self.tree_1.selection_set(self.tree_1.get_children()[0])
+        #
+        # self.tree_2.focus(self.tree_2.get_children()[0])
+        # #self.tree_2.selection_set(self.tree_2.get_children()[0])
+        # self.tree_2.selection_toggle(self.tree_2.selection())
+        #
+
+
+
+
 
 #
         def search_alg(search_dir, name):
@@ -318,14 +329,6 @@ class UI:
         get_update_tree(home_path, self.tree_1)
         get_update_tree(home_path, self.tree_2)
 
-        # self.tree_1.focus(self.tree_1.get_children()[0])
-        # self.tree_1.focus_set()
-        # #self.tree_1.selection_set(self.tree_1.get_children()[0])
-        #
-        # self.tree_2.focus(self.tree_2.get_children()[0])
-        # #self.tree_2.selection_set(self.tree_2.get_children()[0])
-        # self.tree_2.selection_toggle(self.tree_2.selection())
-        #
 
         self.root.mainloop()
 
