@@ -177,8 +177,9 @@ class UI:
                 tv.column('#5', width=60, stretch=False, anchor=CENTER)
                 tv.column('#6', width=60, stretch=False, anchor=CENTER)
             else:
+                tv["displaycolumns"] = None
                 tv["displaycolumns"] = ('#1', '#2', '#3')
-                # tv.column('#1', width=300, stretch=False)
+                tv.column('#1', width=300)
                 # tv.column('#2', width=75, stretch=False, anchor=E)
                 # tv.column('#3', width=120, stretch=False)
 
