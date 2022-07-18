@@ -54,7 +54,7 @@ class UI:
         self.root.columnconfigure(0, weight=1)
         self.root.columnconfigure(1, weight=1)
 
-        self.tree_frame_1 = ttk.Frame(self.root)
+        self.tree_frame_1 = ttk.Frame(self.root,)   #padding=5
         self.tree_frame_1.grid(row=0, column=0, sticky=NSEW)
 
         self.tree_frame_2 = ttk.Frame(self.root)
@@ -80,14 +80,14 @@ class UI:
         self.but2 = Label(self.bot_lf_2, textvariable=self.active_pos_2)
         self.but2.pack(side=LEFT)
 
-        self.tree_1 = ttk.Treeview(self.lf_1, columns=('#1', '#2', '#3', '#4', '#5', '#6'), show='headings', selectmode='browse')
+        self.tree_1 = ttk.Treeview(self.lf_1, columns=('#1', '#2', '#3', '#4', '#5', '#6'),  show='headings', selectmode='browse')
         self.tree_1.pack(fill='both', side=LEFT, expand=True)
-        # self.last_selection_tree_1 = None
+        self.last_selection_tree_1 = None
         self.tree_1.focus_set()
 
         self.tree_2 = ttk.Treeview(self.lf_2, columns=('#1', '#2', '#3', '#4', '#5', '#6'), show='headings', selectmode='browse')
         self.tree_2.pack(fill='both', side=LEFT, expand=True)
-        # self.last_selection_tree_2 = None
+        self.last_selection_tree_2 = None
 
         self.tree_paths = {self.tree_1: [None, [None], [None]], self.tree_2: [None, [None], [None]]}
 
@@ -138,8 +138,8 @@ class UI:
         self.tree_1.bind('<Return>', lambda event: self.item_selected(event, logic, self.tree_1))
         self.tree_2.bind('<Return>', lambda event: self.item_selected(event, logic, self.tree_2))
 
-        self.tree_1.bind('<<TreeviewSelect>>', lambda event: self.update_active_position(event, self.tree_1))
-        self.tree_2.bind('<<TreeviewSelect>>', lambda event: self.update_active_position(event, self.tree_2))
+        # self.tree_1.bind('<<TreeviewSelect>>', lambda event: self.update_active_position(event, self.tree_1))
+        # self.tree_2.bind('<<TreeviewSelect>>', lambda event: self.update_active_position(event, self.tree_2))
 
         self.root.bind('<F5>', lambda event: self.toggle_tree_info(event))
 
@@ -168,7 +168,9 @@ class UI:
                 tv.column('#1', width=300)
 
 
-#
+#   def
+
+
     def update_tree_home_path(self, tv, path):
         '''obnowqwa nadpisa gore w lqwo'''
         if tv == self.tree_1:
@@ -195,24 +197,24 @@ class UI:
         tv.selection_set(tv.get_children()[0])
 
 
-    def update_active_position(self, event, tv):
+    def update_active_position(self, tv):
         '''obnowqwa reda za izbrana pappka '''
-        selected = tv.selection()
-        if tv == self.tree_1:
-            self.active_pos_1.set(tv.item(selected, 'values')[0])
-        else:
-            self.active_pos_2.set(tv.item(selected, 'values')[0])
 
-    # def proba_1(self, event):
-    #     self.last_selection_tree_1 = self.tree_1.focus()
-    #     self.tree_1.selection_set(self.last_selection_tree_1)
-    #     self.tree_2.selection_toggle(self.tree_2.selection())
-    #
-    #
-    # def proba_2(self, event):
-    #     self.last_selection_tree_2 = self.tree_2.focus()
-    #     self.tree_2.selection_set(self.last_selection_tree_2)
-    #     self.tree_1.selection_toggle(self.tree_1.selection())
+        if tv == self.tree_1:
+            self.active_pos_1.set(selected['values'][0])
+        else:
+            self.active_pos_2.set(selected['values'][0])
+
+    def proba_1(self, event):
+        self.last_selection_tree_1 = self.tree_1.focus()
+        self.tree_1.selection_set(self.last_selection_tree_1)
+        self.tree_2.selection_toggle(self.tree_2.selection())
+
+
+    def proba_2(self, event):
+        self.last_selection_tree_2 = self.tree_2.selection()
+        self.tree_2.selection_set(self.last_selection_tree_2)
+        self.tree_1.selection_toggle(self.tree_1.selection())
 
 #
 
@@ -222,8 +224,10 @@ class UI:
         if region == 'heading':
             pass
         elif region == 'cell':
-            selected_path = tree_view.item(tree_view.focus())['text']
+            tree_view.focus(tree_view.selection())
+            selected_path = tree_view.item(tree_view.selection())['text']
             self.insert_tree_values(logic, tree_view, selected_path)
+
 
 #
 #
@@ -237,8 +241,9 @@ class MainLogic:
         self.tree_paths = [[None], [None], [None]]
 
 #
-    def get_update_tree(self, path, sort_key=1):
-        self.tree_paths[1].clear()
+    def get_update_tree(self, path, sort_key=1): #try except  NotADirectoryError: [Errno 20] Not a directory: '/tmp/config-err-L3yImR'
+
+        self.tree_paths[1].clear()                #s.system("open " + shlex.quote(filename))  import subprocess, os, platformif platform.system() == 'Darwin':       # macOS    subprocess.call(('open', filepath))elif platform.system() == 'Windows':    # Windows    os.startfile(filepath)else:                                   # linux variants    subprocess.call(('xdg-open', filepath))
         self.tree_paths[2].clear()
 
         if path != os.path.abspath(os.sep):
