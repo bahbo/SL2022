@@ -19,6 +19,7 @@ class UI:
         self.my_style.configure('TLabel',
                                 background='cyan4',
                                 font=('Monospace', 11))
+        self.my_style.configure('TFrame', background='red')
 
         self.my_style.configure('Treeview.Heading',
                                 # relief=FLAT,
@@ -50,29 +51,17 @@ class UI:
         self.my_style.configure('TLabelframe',  background='#00458b')  # borderwith=5,
 
         self.root.rowconfigure(0, weight=1)
-        self.root.columnconfigure(0, weight=1, )
-        self.root.columnconfigure(1, weight=1, )
+        self.root.columnconfigure(0, weight=1)
+        self.root.columnconfigure(1, weight=1)
 
-        #
         self.tree_frame_1 = ttk.Frame(self.root)
         self.tree_frame_1.grid(row=0, column=0, sticky=NSEW)
 
         self.tree_frame_2 = ttk.Frame(self.root)
         self.tree_frame_2.grid(row=0, column=1, sticky=NSEW)
 
-        # self.tree_frame_1.rowconfigure(0, weight=1)
-        # self.tree_frame_1.columnconfigure(0, weight=1, uniform='1')
-        # self.tree_frame_1.columnconfigure(1, weight=1, uniform='1')
-        #
-        # self.tree_frame_2.rowconfigure(0, weight=1)
-        # self.tree_frame_2.columnconfigure(0, weight=1, uniform='1')
-        # self.tree_frame_2.columnconfigure(1, weight=1, uniform='1')
-
-        # self.root.columnconfigure(1, weight=1, uniform='LabelFrame')
-
-        #
         self.lf_1 = ttk.LabelFrame(self.tree_frame_1, text='current path')
-        self.lf_1.pack(fill='both', side=TOP, expand=True)
+        self.lf_1.pack(fill='both', side=TOP, expand=True,)
 
         self.lf_2 = ttk.LabelFrame(self.tree_frame_2, text='current path')
         self.lf_2.pack(fill='both', side=TOP, expand=True)
@@ -146,8 +135,8 @@ class UI:
         self.tree_1.bind('<Double-Button-1>', lambda event: self.item_selected(event, logic, self.tree_1))
         self.tree_2.bind('<Double-Button-1>', lambda event: self.item_selected(event, logic, self.tree_2))
 
-        self.tree_1.bind('<Return>', lambda event, x=self.tree_1: self.item_selected(event, x))
-        self.tree_2.bind('<Return>', lambda event, x=self.tree_2: self.item_selected(event, x))
+        self.tree_1.bind('<Return>', lambda event: self.item_selected(event, logic, self.tree_1))
+        self.tree_2.bind('<Return>', lambda event: self.item_selected(event, logic, self.tree_2))
 
         self.tree_1.bind('<<TreeviewSelect>>', lambda event: self.update_active_position(event, self.tree_1))
         self.tree_2.bind('<<TreeviewSelect>>', lambda event: self.update_active_position(event, self.tree_2))
@@ -170,9 +159,6 @@ class UI:
                 tv.heading('#5', text='Owner')
                 tv.heading('#6', text='Group')
 
-                # tv.column('#1', width=300, stretch=False)
-                # tv.column('#2', width=75, stretch=False, anchor=E)
-                # tv.column('#3', width=120, stretch=False)
                 tv.column('#4', width=120, stretch=False)
                 tv.column('#5', width=60, stretch=False, anchor=CENTER)
                 tv.column('#6', width=60, stretch=False, anchor=CENTER)
@@ -180,8 +166,7 @@ class UI:
                 tv["displaycolumns"] = None
                 tv["displaycolumns"] = ('#1', '#2', '#3')
                 tv.column('#1', width=300)
-                # tv.column('#2', width=75, stretch=False, anchor=E)
-                # tv.column('#3', width=120, stretch=False)
+
 
 #
     def update_tree_home_path(self, tv, path):
