@@ -114,7 +114,7 @@ class UI:
 
         bttns = [
             ['F1 Help', None],
-            ['F2 Rename', None],
+            ['F2 Rename', lambda:self.create_user_frame()],
             ['F3 Cut', None],
             ['F4 Copy', None],
             ['F5 Paste', None],
@@ -127,11 +127,14 @@ class UI:
 
         for button in bttns:
             setattr(self, button[0],
-                    ttk.Label(self.b_frame, anchor="center").grid(row=0, column=bttns.index(button), sticky=EW))
+                    ttk.Button(self.b_frame, command=button[1]).grid(row=0, column=bttns.index(button), sticky=EW))
 
         for x in range(len(bttns)):
             self.b_frame.grid_slaves(column=x)[0].config(text=bttns[x][0], takefocus=0, underline=1, )
             self.b_frame.columnconfigure(x, weight=1, uniform='label')
+
+
+
 
         self.tree_1.bind('<Double-Button-1>', lambda event: self.item_selected_click(event, logic, self.tree_1))
         self.tree_2.bind('<Double-Button-1>', lambda event: self.item_selected_click(event, logic, self.tree_2))
@@ -219,18 +222,6 @@ class UI:
             self.active_pos_2.set(tv.item(self.last_selection_tree_2)['values'][0])
 
 
-    # def proba_1(self, event):
-    #     self.last_selection_tree_1 = self.tree_1.focus()
-    #     self.tree_1.selection_set(self.last_selection_tree_1)
-    #     self.tree_2.selection_toggle(self.tree_2.selection())
-    #
-    # def proba_2(self, event):
-    #     self.last_selection_tree_2 = self.tree_2.selection()
-    #     self.tree_2.selection_set(self.last_selection_tree_2)
-    #     self.tree_1.selection_toggle(self.tree_1.selection())
-
-    #
-
     def item_selected_click(self, event, logic, tree_view):
         '''Double click / izbor na papka.'''
         region = tree_view.identify("region", event.x, event.y)
@@ -247,6 +238,20 @@ class UI:
         self.insert_tree_values(logic, tree_view, selected_path)
     #
     #
+    def create_user_frame(self):
+        print('hi')
+        user_frame = Toplevel(root)
+        user_frame.transient(master=root)
+        user_frame.overrideredirect(True)
+        # x = self.root.winfo_x()
+        # y = self.root.winfo_y()
+        # w = user_frame.winfo_width()
+        # h = user_frame.winfo_height()
+        # user_frame.geometry("%dx%d+%d+%d" % (w, h, x, y))
+
+
+        search_entry = ttk.Entry(user_frame).pack()
+
 
 
 class MainLogic:
