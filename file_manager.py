@@ -102,7 +102,7 @@ class UI:
             tree.heading('#2', text='Size')
             tree.heading('#3', text='Modify time')
 
-            tree.column('#1')
+            tree.column('#1', minwidth=250, width=250)
             tree.column('#2', width=75, stretch=False, anchor=E)
             tree.column('#3', width=120, stretch=False)
 
@@ -139,10 +139,11 @@ class UI:
         self.tree_1.bind('<Return>', lambda event: self.item_selected_enter(event, logic, self.tree_1))
         self.tree_2.bind('<Return>', lambda event: self.item_selected_enter(event, logic, self.tree_2))
 
-        self.tree_1.bind('<<TreeviewSelect>>', lambda event: self.update_active_position(event, self.tree_1))
-        self.tree_2.bind('<<TreeviewSelect>>', lambda event: self.update_active_position(event, self.tree_2))
+        self.tree_1.bind('<FocusIn>', lambda event: self.update_active_position(event, self.tree_1))
+        self.tree_2.bind('<FocusIn>', lambda event: self.update_active_position(event, self.tree_2))
 
-        self.root.bind('<F5>', lambda event: self.toggle_tree_info(event))
+        self.tree_1.bind('<F5>', lambda event: self.toggle_tree_info(event, self.tree_1))
+        self.tree_2.bind('<F5>', lambda event: self.toggle_tree_info(event, self.tree_2))
 
         # self.tree_1.bind('<Button-1>', lambda event, x=self.tree_1: update_current_selection(event, x))
 
@@ -152,22 +153,29 @@ class UI:
     ######
 
     #
-    def toggle_tree_info(self, event):
+    def toggle_tree_info(self, event, tv):
         '''Pokazwa i skriwa dopylnitelnite koloni '''
-        for tv in (self.tree_1, self.tree_2):
-            if tv["displaycolumns"] == ('#1', '#2', '#3'):
-                tv["displaycolumns"] = ('#1', '#2', '#3', '#4', '#5', '#6')
-                tv.heading('#4', text='Permissions')
-                tv.heading('#5', text='Owner')
-                tv.heading('#6', text='Group')
+        #for tv in (self.tree_1, self.tree_2):
+        if tv["displaycolumns"] == ('#1', '#2', '#3'):
+            tv["displaycolumns"] = ('#1', '#2', '#3', '#4', '#5', '#6')
+            tv.heading('#4', text='Permissions')
+            tv.heading('#5', text='Owner')
+            tv.heading('#6', text='Group')
 
-                tv.column('#4', width=120, stretch=False)
-                tv.column('#5', width=60, stretch=False, anchor=CENTER)
-                tv.column('#6', width=60, stretch=False, anchor=CENTER)
-            else:
-                tv["displaycolumns"] = None
-                tv["displaycolumns"] = ('#1', '#2', '#3')
-                tv.column('#1', width=300)
+            tv.column('#1', minwidth=250, width=250)
+            tv.column('#2', width=75, stretch=False, anchor=E)
+            tv.column('#3', width=120, stretch=False)
+            tv.column('#4', width=120, stretch=False)
+            tv.column('#5', width=60, stretch=False, anchor=CENTER)
+            tv.column('#6', width=60, stretch=False, anchor=CENTER)
+            tv.event_generate("<<ThemeChanged>>")
+        else:
+
+            tv["displaycolumns"] = ('#1', '#2', '#3')
+            tv.column('#1', minwidth=250, width=250)
+            tv.column('#2', width=75, stretch=False, anchor=E)
+            tv.column('#3', width=120, stretch=False)
+            tv.event_generate("<<ThemeChanged>>")
 
     #   def
 
@@ -198,29 +206,28 @@ class UI:
 
     def update_active_position(self, event, tv):
         '''obnowqwa reda za izbrana pappka '''
-        if event.widget == self.tree_1:
-            print('problem')
-            # self.tree_1.focus(self.last_selection_tree_1)
-            if len(self.tree_2.selection()) > 0:
-                self.last_selection_tree_1 = tv.item(tv.selection())
-                self.active_pos_1.set(self.last_selection_tree_1['values'][0])
-                self.tree_2.selection_toggle(self.tree_2.selection())
+        if tv == self.tree_1:
+            self.last_selection_tree_1 = self.tree_1.focus()
+            self.tree_1.selection_set(self.last_selection_tree_1)
+            self.tree_2.selection_toggle(self.tree_2.selection())
+            self.active_pos_1.set(tv.item(self.last_selection_tree_1)['values'][0])
+
         else:
-            # self.tree_2.focus(self.last_selection_tree_2)
-            if len(self.tree_2.selection()) > 0:
-                self.last_selection_tree_2 = tv.item(tv.selection())
-                self.active_pos_2.set(self.last_selection_tree_2['values'][0])
-                self.tree_1.selection_toggle(self.tree_1.selection())
+            self.last_selection_tree_2 = self.tree_2.focus()
+            self.tree_2.selection_set(self.last_selection_tree_2)
+            self.tree_1.selection_toggle(self.tree_1.selection())
+            self.active_pos_2.set(tv.item(self.last_selection_tree_2)['values'][0])
 
-    def proba_1(self, event):
-        self.last_selection_tree_1 = self.tree_1.focus()
-        self.tree_1.selection_set(self.last_selection_tree_1)
-        self.tree_2.selection_toggle(self.tree_2.selection())
 
-    def proba_2(self, event):
-        self.last_selection_tree_2 = self.tree_2.selection()
-        self.tree_2.selection_set(self.last_selection_tree_2)
-        self.tree_1.selection_toggle(self.tree_1.selection())
+    # def proba_1(self, event):
+    #     self.last_selection_tree_1 = self.tree_1.focus()
+    #     self.tree_1.selection_set(self.last_selection_tree_1)
+    #     self.tree_2.selection_toggle(self.tree_2.selection())
+    #
+    # def proba_2(self, event):
+    #     self.last_selection_tree_2 = self.tree_2.selection()
+    #     self.tree_2.selection_set(self.last_selection_tree_2)
+    #     self.tree_1.selection_toggle(self.tree_1.selection())
 
     #
 
