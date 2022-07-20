@@ -125,7 +125,7 @@ class UI:
 
         bttns = [
             ['F1 Help', None],
-            ['F2 ?!?!?', lambda:self.create_user_window()],
+            ['F2 ?!?!?', None ],
             ['F3 Cut', None],
             ['F4 Copy', None],
             ['F5 Paste', None],
@@ -178,8 +178,10 @@ class UI:
     def rename(self, logic):
         self.chose_active_tv()
         self.create_user_window()
-
-        logic.rename(logic, self.tv_order, self.entry_text, self.uf_label, self.destroy_user_window())
+        selection = self.tv_order[0].item(self.tv_order[0].focus())
+        self.uf_label.configure(text='Enter New Name:')
+        self.entry_text.set(selection['values'][0])
+        self.uf_ok_button.configure(command= lambda:logic.rename(selection, self.entry_text, self.uf_label, self.destroy_user_window))
 
     #
     def toggle_tree_info(self, event, tv):
@@ -251,7 +253,10 @@ class UI:
             print(tv.item(self.tree_2.focus())['text'].rsplit('/',1))
 
     #
-    #
+    def accepted_characters(self, S):
+        if S != '/':
+            return True
+        return False
 
     def create_user_window(self):
         '''Creates new Toplavel window, and places it in the center of the mainwindow.
@@ -268,7 +273,8 @@ class UI:
         self.uf_label.grid(row=0, column=0, columnspan=2)
 
         self.entry_text = StringVar()
-        self.uf_entry = ttk.Entry(self.uf, width=25, textvariable=self.entry_text)
+        vcmd = (root.register(self.accepted_characters), '%S')
+        self.uf_entry = Entry(self.uf, width=25, textvariable=self.entry_text, validate='key', vcmd=vcmd)
         self.uf_entry.grid(row=1, column=0, columnspan=2, ipady=3, pady=10,  sticky=NSEW)
 
         self.uf_ok_button = ttk.Button(self.uf, text='OK')

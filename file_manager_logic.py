@@ -65,19 +65,16 @@ class MainLogic:
 
 
 
-    def rename(self, *args):
-        tv_order, uf_label, entry_text, destroy_user_window = args
-        selection = tv_order[0].item(tv_order[0].focus())
-        if selection.item(selection.focus())['values'] != '/..':
-            path = selection.item(selection.focus())['text']
+    def rename(self, selection, entry_text, uf_label, destroy_user_window):
+        #tv_order, uf_label, entry_text, destroy_user_window = args
+
+        if selection['values'][0] != '/..':
+            path = selection['text']
             base_path = path.rsplit('/', 1)[0]
             old_name = path.rsplit('/', 1)[1]
-            entry_text.set(old_name)
-            uf_label.configure(text='Enter New Name:')
-
-            if old_name != entry_text:
+            if old_name != entry_text.get():
                 try:
-                    os.rename(base_path+old_name, base_path+entry_text)
+                    os.rename(path, '/'.join([base_path, entry_text.get()]))
                 except PermissionError as pe:
                     messagebox.showerror("showerror", f'{pe}')
             destroy_user_window()
