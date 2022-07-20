@@ -41,7 +41,7 @@ class MainLogic:
         self.tree_paths[2].sort(key=lambda x: x[sort_key])
         return self.tree_paths
 
-    def insert_tree_values(self, logic, tv, path):
+    def insert_tree_values(self, tv, path):
         ''' zarejda informaciqta ot logikata w izbranoto TV'''
         for entry in tv.get_children():
             tv.delete(entry)

@@ -215,13 +215,13 @@ class UI:
             pass
         elif region == 'cell':
             selected_path = tree_view.item(tree_view.selection())['text']
-            logic.insert_tree_values(logic, tree_view, selected_path)
+            logic.insert_tree_values(tree_view, selected_path)
             self.update_tree_home_path(tree_view, selected_path)
 
     #
     def item_selected_enter(self, event, logic, tree_view):
         selected_path = tree_view.item(tree_view.selection())['text']
-        logic.insert_tree_values(logic, tree_view, selected_path)
+        logic.insert_tree_values(tree_view, selected_path)
         self.update_tree_home_path(tree_view, selected_path)
 
 
@@ -295,7 +295,7 @@ logic1 = MainLogic()
 
 gui = UI(root, logic1)
 
-logic1.insert_tree_values(logic1, gui.tree_2, os.path.expanduser('~'))
-logic1.insert_tree_values(logic1, gui.tree_1, os.path.expanduser('~'))
+logic1.insert_tree_values(gui.tree_2, os.path.expanduser('~'))
+logic1.insert_tree_values(gui.tree_1, os.path.expanduser('~'))
 
 root.mainloop()
