@@ -109,6 +109,8 @@ class UI:
         #
         ttk.Separator(self.root, orient='horizontal', ).grid(row=3, column=0, sticky="ew")
 
+        self.user_frame = None
+
         self.b_frame = Frame(self.root)
         self.b_frame.grid(row=4, column=0, columnspan=2, sticky=EW)
 
@@ -135,6 +137,7 @@ class UI:
 
 
 
+        self.root.bind("<Configure>", lambda event: self.move_user_frame(event))
 
         self.tree_1.bind('<Double-Button-1>', lambda event: self.item_selected_click(event, logic, self.tree_1))
         self.tree_2.bind('<Double-Button-1>', lambda event: self.item_selected_click(event, logic, self.tree_2))
@@ -213,13 +216,13 @@ class UI:
             self.last_selection_tree_1 = self.tree_1.focus()
             self.tree_1.selection_set(self.last_selection_tree_1)
             self.tree_2.selection_toggle(self.tree_2.selection())
-            self.active_pos_1.set(tv.item(self.last_selection_tree_1)['values'][0])
+            self.active_pos_1.set(tv.item(self.tree_1.selection())['values'][0])
 
         else:
             self.last_selection_tree_2 = self.tree_2.focus()
             self.tree_2.selection_set(self.last_selection_tree_2)
             self.tree_1.selection_toggle(self.tree_1.selection())
-            self.active_pos_2.set(tv.item(self.last_selection_tree_2)['values'][0])
+            self.active_pos_2.set(tv.item(self.tree_2.selection())['values'][0])
 
 
     def item_selected_click(self, event, logic, tree_view):
@@ -238,19 +241,38 @@ class UI:
         self.insert_tree_values(logic, tree_view, selected_path)
     #
     #
+
     def create_user_frame(self):
-        print('hi')
-        user_frame = Toplevel(root)
-        user_frame.transient(master=root)
-        user_frame.overrideredirect(True)
-        # x = self.root.winfo_x()
-        # y = self.root.winfo_y()
-        # w = user_frame.winfo_width()
-        # h = user_frame.winfo_height()
-        # user_frame.geometry("%dx%d+%d+%d" % (w, h, x, y))
+        self.user_frame = Toplevel(root)
+        self.user_frame.transient(master=root)
+        self.user_frame.overrideredirect(True)  #без рамка и 'X' бутон
+        self.user_frame.grab_set()
+        search_entry = ttk.Entry(self.user_frame).pack(padx=15, pady=15)
+        self.user_frame.update()
+        #self.root.update()
+        x_r = self.root.winfo_x()
+        y_r = self.root.winfo_y()
+        w_r = self.root.winfo_width()
+        h_r = self.root.winfo_height()
+
+        w_uf = self.user_frame.winfo_width()
+        h_uf = self.user_frame.winfo_height()
+        self.user_frame.geometry(f"+{x_r + (w_r - w_uf)//2}+{y_r + (h_r-h_uf)//2}")
 
 
-        search_entry = ttk.Entry(user_frame).pack()
+
+
+    def move_user_frame(self, event):
+        if self.user_frame is not None:
+            x_r = self.root.winfo_x()
+            y_r = self.root.winfo_y()
+            w_r = self.root.winfo_width()
+            h_r = self.root.winfo_height()
+            self.user_frame.update()
+            w_uf = self.user_frame.winfo_width()
+            h_uf = self.user_frame.winfo_height()
+            self.user_frame.geometry(f"+{x_r + (w_r - w_uf) // 2}+{y_r + (h_r - h_uf) // 2}")
+
 
 
 
