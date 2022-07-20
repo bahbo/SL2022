@@ -14,7 +14,7 @@ class UI:
         self.uf_ok_button = None
         self.uf_entry = None
         self.uf_label = None
-        self.user_windiw = None
+        self.user_window = None
         self.root = root
         self.root.title('File Manager')
 
@@ -115,14 +115,14 @@ class UI:
         #
         ttk.Separator(self.root, orient='horizontal', ).grid(row=3, column=0, sticky="ew")
 
-        self.user_windiw = None
+        self.user_window = None
 
         self.b_frame = Frame(self.root)
         self.b_frame.grid(row=4, column=0, columnspan=2, sticky=EW)
 
         bttns = [
             ['F1 Help', None],
-            ['F2 Rename', lambda:self.create_user_frame()],
+            ['F2 Rename', lambda:self.create_user_window()],
             ['F3 Cut', None],
             ['F4 Copy', None],
             ['F5 Paste', None],
@@ -165,9 +165,15 @@ class UI:
     ######
 
     #
+
+    def chose_active_tv(self, tv_order):
+        if len(self.tree_1.selection()) > 0:
+            tv_order(self.tree_1, self.tree_2)
+        elif len(self.tree_2.selection()) >0:
+            tv_order(self.tree_2, self.tree_1)
+
     def toggle_tree_info(self, event, tv):
         '''Pokazwa i skriwa dopylnitelnite koloni '''
-        #for tv in (self.tree_1, self.tree_2):
         if tv["displaycolumns"] == ('#1', '#2', '#3'):
             tv["displaycolumns"] = ('#1', '#2', '#3', '#4', '#5', '#6')
             tv.heading('#4', text='Permissions')
@@ -248,16 +254,16 @@ class UI:
     #
     #
 
-    def create_user_frame(self):
-        self.user_windiw = Toplevel(root)
-        self.user_windiw.transient(master=root)
-        self.user_windiw.wm_attributes('-type', 'splash')
-        self.user_windiw.grab_set()
+    def create_user_window(self):
+        '''Creates new Toplavel window, and places it in the center of the mainwindow.
+        Creates , buttons, label and entry.'''
+        self.user_window = Toplevel(root)
+        self.user_window.transient(master=root)
+        self.user_window.wm_attributes('-type', 'splash')
+        self.user_window.grab_set()
 
-        self.uf = ttk.Frame(self.user_windiw)
+        self.uf = ttk.Frame(self.user_window)
         self.uf.grid(row=0, column=0,padx=20, pady=20)
-        # self.uf.rowconfigure(1, uniform=1)
-        # self.uf.rowconfigure(2, uniform=2)
 
         self.uf_label = ttk.Label(self.uf, text='Enter New Name:')
         self.uf_label.grid(row=0, column=0, columnspan=2)
@@ -265,29 +271,31 @@ class UI:
         self.uf_entry.grid(row=1, column=0, columnspan=2,ipady=3, pady=10,  sticky=NSEW)
         self.uf_ok_button = ttk.Button(self.uf, text='OK')
         self.uf_ok_button.grid(row=2, column=0,)
-        self.uf_cancel_button = ttk.Button(self.uf, text='Cancel')
+        self.uf_cancel_button = ttk.Button(self.uf, text='Cancel', command=self.destroy_user_window )
         self.uf_cancel_button.grid(row=2, column=1 )
 
-
-        self.user_windiw.update()
+        self.user_window.update()
         self.user_frame_position()
 
     def user_frame_position(self):
+        '''Moves user window with main window'''
         x_r = self.root.winfo_x()
         y_r = self.root.winfo_y()
         w_r = self.root.winfo_width()
         h_r = self.root.winfo_height()
 
-        w_uf = self.user_windiw.winfo_width()
-        h_uf = self.user_windiw.winfo_height()
-        self.user_windiw.geometry(f"+{x_r + (w_r - w_uf) // 2}+{y_r + (h_r - h_uf) // 2}")
-
-
-
+        w_uf = self.user_window.winfo_width()
+        h_uf = self.user_window.winfo_height()
+        self.user_window.geometry(f"+{x_r + (w_r - w_uf) // 2}+{y_r + (h_r - h_uf) // 2}")
 
     def move_user_frame(self, event):
-        if self.user_windiw is not None:
+        if self.user_window is not None:
             self.user_frame_position()
+
+    def destroy_user_window(self):
+        self.user_window.destroy()
+        self.user_window = None
+
 
 
 
@@ -300,11 +308,9 @@ class MainLogic:
         self.tree_paths = [[None], [None], [None]]
 
     #
-    def get_update_tree(self, path,
-                        sort_key=1):  # try except  NotADirectoryError: [Errno 20] Not a directory: '/tmp/config-err-L3yImR'
+    def get_update_tree(self, path, sort_key=1):  # try except  NotADirectoryError: [Errno 20] Not a directory: '/tmp/config-err-L3yImR'
 
-        self.tree_paths[
-            1].clear()  # s.system("open " + shlex.quote(filename))  import subprocess, os, platformif platform.system() == 'Darwin':       # macOS    subprocess.call(('open', filepath))elif platform.system() == 'Windows':    # Windows    os.startfile(filepath)else:                                   # linux variants    subprocess.call(('xdg-open', filepath))
+        self.tree_paths[1].clear()  # s.system("open " + shlex.quote(filename))  import subprocess, os, platformif platform.system() == 'Darwin':       # macOS    subprocess.call(('open', filepath))elif platform.system() == 'Windows':    # Windows    os.startfile(filepath)else:                                   # linux variants    subprocess.call(('xdg-open', filepath))
         self.tree_paths[2].clear()
 
         if path != os.path.abspath(os.sep):
@@ -328,6 +334,9 @@ class MainLogic:
         self.tree_paths[1].sort(key=lambda x: x[sort_key])
         self.tree_paths[2].sort(key=lambda x: x[sort_key])
         return self.tree_paths
+
+
+
 
     #
     def search_alg(self, search_dir, name):
