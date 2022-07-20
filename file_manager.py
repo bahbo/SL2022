@@ -9,6 +9,12 @@ from datetime import datetime
 class UI:
 
     def __init__(self, root, logic):
+        self.uf = None
+        self.uf_cancel_button = None
+        self.uf_ok_button = None
+        self.uf_entry = None
+        self.uf_label = None
+        self.user_windiw = None
         self.root = root
         self.root.title('File Manager')
 
@@ -109,7 +115,7 @@ class UI:
         #
         ttk.Separator(self.root, orient='horizontal', ).grid(row=3, column=0, sticky="ew")
 
-        self.user_frame = None
+        self.user_windiw = None
 
         self.b_frame = Frame(self.root)
         self.b_frame.grid(row=4, column=0, columnspan=2, sticky=EW)
@@ -243,35 +249,45 @@ class UI:
     #
 
     def create_user_frame(self):
-        self.user_frame = Toplevel(root)
-        self.user_frame.transient(master=root)
-        self.user_frame.overrideredirect(True)  #без рамка и 'X' бутон
-        self.user_frame.grab_set()
-        search_entry = ttk.Entry(self.user_frame).pack(padx=15, pady=15)
-        self.user_frame.update()
-        #self.root.update()
+        self.user_windiw = Toplevel(root)
+        self.user_windiw.transient(master=root)
+        self.user_windiw.wm_attributes('-type', 'splash')
+        self.user_windiw.grab_set()
+
+        self.uf = ttk.Frame(self.user_windiw)
+        self.uf.grid(row=0, column=0,padx=20, pady=20)
+        # self.uf.rowconfigure(1, uniform=1)
+        # self.uf.rowconfigure(2, uniform=2)
+
+        self.uf_label = ttk.Label(self.uf, text='Enter New Name:')
+        self.uf_label.grid(row=0, column=0, columnspan=2)
+        self.uf_entry = ttk.Entry(self.uf, width=25, )
+        self.uf_entry.grid(row=1, column=0, columnspan=2,ipady=3, pady=10,  sticky=NSEW)
+        self.uf_ok_button = ttk.Button(self.uf, text='OK')
+        self.uf_ok_button.grid(row=2, column=0,)
+        self.uf_cancel_button = ttk.Button(self.uf, text='Cancel')
+        self.uf_cancel_button.grid(row=2, column=1 )
+
+
+        self.user_windiw.update()
+        self.user_frame_position()
+
+    def user_frame_position(self):
         x_r = self.root.winfo_x()
         y_r = self.root.winfo_y()
         w_r = self.root.winfo_width()
         h_r = self.root.winfo_height()
 
-        w_uf = self.user_frame.winfo_width()
-        h_uf = self.user_frame.winfo_height()
-        self.user_frame.geometry(f"+{x_r + (w_r - w_uf)//2}+{y_r + (h_r-h_uf)//2}")
+        w_uf = self.user_windiw.winfo_width()
+        h_uf = self.user_windiw.winfo_height()
+        self.user_windiw.geometry(f"+{x_r + (w_r - w_uf) // 2}+{y_r + (h_r - h_uf) // 2}")
 
 
 
 
     def move_user_frame(self, event):
-        if self.user_frame is not None:
-            x_r = self.root.winfo_x()
-            y_r = self.root.winfo_y()
-            w_r = self.root.winfo_width()
-            h_r = self.root.winfo_height()
-            self.user_frame.update()
-            w_uf = self.user_frame.winfo_width()
-            h_uf = self.user_frame.winfo_height()
-            self.user_frame.geometry(f"+{x_r + (w_r - w_uf) // 2}+{y_r + (h_r - h_uf) // 2}")
+        if self.user_windiw is not None:
+            self.user_frame_position()
 
 
 
