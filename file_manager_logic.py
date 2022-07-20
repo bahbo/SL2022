@@ -1,4 +1,5 @@
 from tkinter import *
+from tkinter import messagebox
 from tkinter import ttk
 import os
 import stat
@@ -43,35 +44,69 @@ class MainLogic:
 
     def insert_tree_values(self, tv, path):
         ''' zarejda informaciqta ot logikata w izbranoto TV'''
-        for entry in tv.get_children():
-            tv.delete(entry)
+        try:
+            dir_items = self.get_update_tree(path)
+        except PermissionError as pe:
+            messagebox.showerror("showerror", f'{pe}')
+        else:
+            for entry in tv.get_children():
+                tv.delete(entry)
+            for index, item in enumerate(dir_items[1]):
+                tv.insert('', END, tags='dir', text=self.tree_paths[1][index][0],
+                          values=tuple(self.tree_paths[1][index][1:]))
 
-        dir_items = self.get_update_tree(path)
-        for index, item in enumerate(dir_items[1]):
-            tv.insert('', END, tags='dir', text=self.tree_paths[1][index][0],
-                      values=tuple(self.tree_paths[1][index][1:]))
+            for index, item in enumerate(dir_items[2]):
+                tv.insert('', END, tags='file', text=self.tree_paths[2][index][0],
+                          values=tuple(self.tree_paths[2][index][1:]))
 
-        for index, item in enumerate(dir_items[2]):
-            tv.insert('', END, tags='file', text=self.tree_paths[2][index][0],
-                      values=tuple(self.tree_paths[2][index][1:]))
+            tv.focus(tv.get_children()[0])
+            tv.selection_set(tv.get_children()[0])
 
-        tv.focus(tv.get_children()[0])
-        tv.selection_set(tv.get_children()[0])
 
+
+
+    def rename(self, *args):
+        tv_order, uf_label, entry_text, destroy_user_window = args
+        selection = tv_order[0].item(tv_order[0].focus())
+        if selection.item(selection.focus())['values'] != '/..':
+            path = selection.item(selection.focus())['text']
+            base_path = path.rsplit('/', 1)[0]
+            old_name = path.rsplit('/', 1)[1]
+            entry_text.set(old_name)
+            uf_label.configure(text='Enter New Name:')
+
+            if old_name != entry_text:
+                try:
+                    os.rename(base_path+old_name, base_path+entry_text)
+                except PermissionError as pe:
+                    messagebox.showerror("showerror", f'{pe}')
+            destroy_user_window()
 
 
 
     #
-    def search_alg(self, search_dir, name):
-        results = []
-        for root, dirs, files in os.walk(search_dir):
-            for file in files:
-                if name.lower() in file.lower():
-                    results.append(root + '/' + str(file))
-            for dir_ in dirs:
-                if name.lower() in dir_.lower():
-                    results.append(root + '/' + str(dir_))
-        return results
+    # def rename_file(self, *args):
+    #     lb, new_name, del_edit_spot, refresh_lb, old_name = args
+    #     self.get_tree(lb)
+    #     self.current_root = self.get_active_lb_root()
+    #     os.chdir(self.current_root)
+    #     if old_name != new_name:
+    #         os.rename(old_name, new_name)
+    #     del_edit_spot()
+    #     refresh_lb()
+
+
+    #
+    # def search_alg(self, search_dir, name):
+    #     results = []
+    #     for root, dirs, files in os.walk(search_dir):
+    #         for file in files:
+    #             if name.lower() in file.lower():
+    #                 results.append(root + '/' + str(file))
+    #         for dir_ in dirs:
+    #             if name.lower() in dir_.lower():
+    #                 results.append(root + '/' + str(dir_))
+    #     return results
 
 
 #

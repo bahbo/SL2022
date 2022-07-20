@@ -10,12 +10,14 @@ from datetime import datetime
 class UI:
 
     def __init__(self, root, logic):
+        self.entry_text = None
         self.uf = None
         self.uf_cancel_button = None
         self.uf_ok_button = None
         self.uf_entry = None
         self.uf_label = None
         self.user_window = None
+        self.tv_order = [None]
         self.root = root
         self.root.title('File Manager')
 
@@ -123,11 +125,11 @@ class UI:
 
         bttns = [
             ['F1 Help', None],
-            ['F2 Rename', lambda:self.create_user_window()],
+            ['F2 ?!?!?', lambda:self.create_user_window()],
             ['F3 Cut', None],
             ['F4 Copy', None],
             ['F5 Paste', None],
-            ['F6 MkDir', None],
+            ['F6 Rename', lambda: self.rename(logic)],
             ['F7 DelDir', None],
             ['F8 MkFile', None],
             ['F9 DelFile', None],
@@ -167,11 +169,17 @@ class UI:
 
     #
 
-    def chose_active_tv(self, tv_order):
+    def chose_active_tv(self):
         if len(self.tree_1.selection()) > 0:
-            tv_order(self.tree_1, self.tree_2)
-        elif len(self.tree_2.selection()) >0:
-            tv_order(self.tree_2, self.tree_1)
+            self.tv_order = [self.tree_1, self.tree_2]
+        elif len(self.tree_2.selection()) > 0:
+            self.tv_order = [self.tree_2, self.tree_1]
+
+    def rename(self, logic):
+        self.chose_active_tv()
+        self.create_user_window()
+
+        logic.rename(logic, self.tv_order, self.entry_text, self.uf_label, self.destroy_user_window())
 
     #
     def toggle_tree_info(self, event, tv):
@@ -239,6 +247,8 @@ class UI:
             self.tree_2.selection_set(self.last_selection_tree_2)
             self.tree_1.selection_toggle(self.tree_1.selection())
             self.active_pos_2.set(tv.item(self.tree_2.selection())['values'][0])
+            print(tv.item(self.tree_2.focus())['text'])
+            print(tv.item(self.tree_2.focus())['text'].rsplit('/',1))
 
     #
     #
@@ -254,12 +264,16 @@ class UI:
         self.uf = ttk.Frame(self.user_window)
         self.uf.grid(row=0, column=0,padx=20, pady=20)
 
-        self.uf_label = ttk.Label(self.uf, text='Enter New Name:')
+        self.uf_label = ttk.Label(self.uf)
         self.uf_label.grid(row=0, column=0, columnspan=2)
-        self.uf_entry = ttk.Entry(self.uf, width=25, )
-        self.uf_entry.grid(row=1, column=0, columnspan=2,ipady=3, pady=10,  sticky=NSEW)
+
+        self.entry_text = StringVar()
+        self.uf_entry = ttk.Entry(self.uf, width=25, textvariable=self.entry_text)
+        self.uf_entry.grid(row=1, column=0, columnspan=2, ipady=3, pady=10,  sticky=NSEW)
+
         self.uf_ok_button = ttk.Button(self.uf, text='OK')
         self.uf_ok_button.grid(row=2, column=0,)
+
         self.uf_cancel_button = ttk.Button(self.uf, text='Cancel', command=self.destroy_user_window )
         self.uf_cancel_button.grid(row=2, column=1 )
 
