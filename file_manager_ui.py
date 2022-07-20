@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 import os
+from file_manager_logic import MainLogic
 import stat
 from pathlib import Path
 from datetime import datetime
@@ -172,6 +173,7 @@ class UI:
         elif len(self.tree_2.selection()) >0:
             tv_order(self.tree_2, self.tree_1)
 
+    #
     def toggle_tree_info(self, event, tv):
         '''Pokazwa i skriwa dopylnitelnite koloni '''
         if tv["displaycolumns"] == ('#1', '#2', '#3'):
@@ -188,7 +190,6 @@ class UI:
             tv.column('#6', width=60, stretch=False, anchor=CENTER)
             tv.event_generate("<<ThemeChanged>>")
         else:
-
             tv["displaycolumns"] = ('#1', '#2', '#3')
             tv.column('#1', minwidth=250, width=250)
             tv.column('#2', width=75, stretch=False, anchor=E)
@@ -199,29 +200,32 @@ class UI:
 
     def update_tree_home_path(self, tv, path):
         '''obnowqwa nadpisa gore w lqwo'''
+
         if tv == self.tree_1:
             self.lf_1.configure(text=path)
         else:
             self.lf_2.configure(text=path)
 
+
+
+    def item_selected_click(self, event, logic, tree_view):
+        '''Double click / izbor na papka.'''
+        region = tree_view.identify("region", event.x, event.y)
+        if region == 'heading':
+            pass
+        elif region == 'cell':
+            selected_path = tree_view.item(tree_view.selection())['text']
+            logic.insert_tree_values(logic, tree_view, selected_path)
+            self.update_tree_home_path(tree_view, selected_path)
+
     #
-    def insert_tree_values(self, logic, tv, path):
-        ''' zarejda informaciqta ot logikata w izbranoto TV'''
-        for entry in tv.get_children():
-            tv.delete(entry)
+    def item_selected_enter(self, event, logic, tree_view):
+        selected_path = tree_view.item(tree_view.selection())['text']
+        logic.insert_tree_values(logic, tree_view, selected_path)
+        self.update_tree_home_path(tree_view, selected_path)
 
-        dir_items = logic.get_update_tree(path)
-        for index, item in enumerate(dir_items[1]):
-            tv.insert('', END, tags='dir', text=logic.tree_paths[1][index][0],
-                      values=tuple(logic.tree_paths[1][index][1:]))
 
-        for index, item in enumerate(dir_items[2]):
-            tv.insert('', END, tags='file', text=logic.tree_paths[2][index][0],
-                      values=tuple(logic.tree_paths[2][index][1:]))
-        self.update_tree_home_path(tv, path)
-        tv.focus(tv.get_children()[0])
-        tv.selection_set(tv.get_children()[0])
-
+    #
     def update_active_position(self, event, tv):
         '''obnowqwa reda za izbrana pappka '''
         if tv == self.tree_1:
@@ -236,21 +240,6 @@ class UI:
             self.tree_1.selection_toggle(self.tree_1.selection())
             self.active_pos_2.set(tv.item(self.tree_2.selection())['values'][0])
 
-
-    def item_selected_click(self, event, logic, tree_view):
-        '''Double click / izbor na papka.'''
-        region = tree_view.identify("region", event.x, event.y)
-        if region == 'heading':
-            pass
-        elif region == 'cell':
-            # tree_view.selection_set(tree_view.focus())
-            selected_path = tree_view.item(tree_view.selection())['text']
-            self.insert_tree_values(logic, tree_view, selected_path)
-
-    def item_selected_enter(self, event, logic, tree_view):
-        # tree_view.selection_set(tree_view.focus())
-        selected_path = tree_view.item(tree_view.selection())['text']
-        self.insert_tree_values(logic, tree_view, selected_path)
     #
     #
 
@@ -300,89 +289,13 @@ class UI:
 
 
 
-class MainLogic:
-
-    def __init__(self):
-        self.current_folder = os.path.expanduser('~')
-        self.current_selection = None
-        self.tree_paths = [[None], [None], [None]]
-
-    #
-    def get_update_tree(self, path, sort_key=1):  # try except  NotADirectoryError: [Errno 20] Not a directory: '/tmp/config-err-L3yImR'
-
-        self.tree_paths[1].clear()  # s.system("open " + shlex.quote(filename))  import subprocess, os, platformif platform.system() == 'Darwin':       # macOS    subprocess.call(('open', filepath))elif platform.system() == 'Windows':    # Windows    os.startfile(filepath)else:                                   # linux variants    subprocess.call(('xdg-open', filepath))
-        self.tree_paths[2].clear()
-
-        if path != os.path.abspath(os.sep):
-            up_dir = (Path(path).parent, '/..', 'UP--DIR')
-            self.tree_paths[1].append(up_dir)
-        for item in os.scandir(path):
-            info = [
-                item.path,
-                item.name,
-                item.stat().st_size,
-                datetime.fromtimestamp(item.stat().st_mtime).strftime('%b %d %-H:%M'),
-                stat.filemode(item.stat().st_mode),
-                Path(item.path).owner(),
-                Path(item.path).group()]
-            if item.is_dir():
-                info[1] = f'/{item.name}'
-                self.tree_paths[1].append(info)
-            else:
-                self.tree_paths[2].append(info)
-
-        self.tree_paths[1].sort(key=lambda x: x[sort_key])
-        self.tree_paths[2].sort(key=lambda x: x[sort_key])
-        return self.tree_paths
-
-
-
-
-    #
-    def search_alg(self, search_dir, name):
-        results = []
-        for root, dirs, files in os.walk(search_dir):
-            for file in files:
-                if name.lower() in file.lower():
-                    results.append(root + '/' + str(file))
-            for dir_ in dirs:
-                if name.lower() in dir_.lower():
-                    results.append(root + '/' + str(dir_))
-        return results
-
-
-#
-# def treeview_sort_column(self, tv, col, reverse):
-#     lst = [(tv.set(k, col), k) for k in tv.get_children('')]
-#     print(lst)
-#     lst.sort(reverse=reverse)
-#
-#     #
-#     # rearrange items in sorted positions
-#     for index, (val, k) in enumerate(lst):
-#         tv.move(k, '', index)
-
-# # reverse sort next time
-# tv.heading(col, text=col, command=lambda _col=col: \
-#     treeview_sort_column(tv, _col, not reverse))
-
-#
-# columns = ('#1', '#2', '#3')
-
-# for col in columns:
-#     self.tree_1.heading(col, text=col, command=lambda _col=col: \
-#         treeview_sort_column(tree, _col, False))
-
-
-#
 root = Tk()
 
 logic1 = MainLogic()
-logic1.get_update_tree(logic1.current_folder)
 
 gui = UI(root, logic1)
 
-gui.insert_tree_values(logic1, gui.tree_2, os.path.expanduser('~'))
-gui.insert_tree_values(logic1, gui.tree_1, os.path.expanduser('~'))
+logic1.insert_tree_values(logic1, gui.tree_2, os.path.expanduser('~'))
+logic1.insert_tree_values(logic1, gui.tree_1, os.path.expanduser('~'))
 
 root.mainloop()
