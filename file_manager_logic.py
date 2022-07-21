@@ -56,7 +56,7 @@ class MainLogic:
             for entry in tv.get_children():
                 tv.delete(entry)
             for index, item in enumerate(dir_items[1]):
-                tv.insert('', END, tags='dir', text=self.tree_paths[1][index][0],
+                tv.insert('', END, tags='dir', iid=self.tree_paths[1][index][0], text=self.tree_paths[1][index][0],
                           values=tuple(self.tree_paths[1][index][1:]))
 
             for index, item in enumerate(dir_items[2]):
@@ -96,12 +96,24 @@ class MainLogic:
         path = selection()['text']
         if selection()['values'][0] != '/..':
             self.copied_object = path
-            selection()['tags'] = 'copy'
+            self.cut_object = None
+            # tv.item(selection(), tags='copy')
+            # print(selection()['tags'])
 
             ### da se otrazqwa kopiraneto
 
 
+    def cut_file_folder(self, selection):
+        path = selection()['text']
+        if selection()['values'][0] != '/..':
+            self.copied_object = None
+            self.cut_object = path
+            # tv.item(selection(), tags='copy')
+            # print(selection()['tags'])
 
+            ### da se otrazqwa kopiraneto
+
+    def paste(self, selected, location):
     #
     # def rename_file(self, *args):
     #     lb, new_name, del_edit_spot, refresh_lb, old_name = args

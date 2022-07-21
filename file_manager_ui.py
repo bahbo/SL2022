@@ -108,7 +108,7 @@ class UI:
             tree.tag_configure('dir', foreground='light gray')
             tree.tag_configure('file', foreground='cyan4')
             tree.tag_configure('copy', foreground='yellow')
-            tree.tag_configure('cut', foreground='red')
+            tree.tag_configure('cut', foreground='cyan4')
 
 
             tree.heading('#1', text='Name')
@@ -172,6 +172,12 @@ class UI:
     ######
 
     #
+    def tv_list(self):
+        if len(self.tree_1.selection()) > 0:
+            self.tv_order = (self.tree_1, self.tree_2)
+        elif len(self.tree_2.selection()) > 0:
+            self.tv_order = (self.tree_1, self.tree_2)
+
 
     def active_selection(self):
         if len(self.tree_1.selection()) > 0:
