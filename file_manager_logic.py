@@ -114,22 +114,28 @@ class MainLogic:
 
             ### da se otrazqwa kopiraneto
 
-    def paste(self, location):
+    def paste(self, tv_list, tree_paths):
+        print(tv_list[0])
+        location = tree_paths[tv_list[0]]
         if self.copied_object is not None:
             print('ok')
             name = Path(self.copied_object).name
             try:
                 if os.path.isfile(self.copied_object) or os.path.islink(self.copied_object):
-                    shutil.copy2(self.copied_object, location+name)
+                    shutil.copy2(self.copied_object, '/'.join([location,name]))
                 elif os.path.isdir(self.copied_object):
-                    shutil.copytree(self.copied_object, location+name)
+                    shutil.copytree(self.copied_object, '/'.join([location,name]))
             except PermissionError as pe:
                 messagebox.showerror('Error', pe.strerror)
+            #except FileExistsError:
+                pass
+            # TODO
+
 
         elif self.cut_object is not None:
             name = Path(self.cut_object).name
             try:
-                shutil.move(self.cut_object, location+name)
+                shutil.move(self.cut_object, '/'.join([location,name]))
             except PermissionError as pe:
                 messagebox.showerror('Error', pe.strerror)
 

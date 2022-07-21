@@ -101,7 +101,7 @@ class UI:
         self.tree_2.pack(fill='both', side=LEFT, expand=True)
         self.last_selection_tree_2 = None
 
-        self.tree_paths = {'tv_1': None, 'tv_2': None}
+        self.tree_paths = {self.tree_1: None, self.tree_2: None}
 
         #
         for tree in (self.tree_1, self.tree_2):
@@ -133,7 +133,7 @@ class UI:
             ['F2 ?!?!?', None],
             ['F3 Cut', lambda: logic.cut_file_folder(self.active_selection)],
             ['F4 Copy', lambda: logic.copy_file_folder(self.active_selection)],
-            ['F5 Paste', lambda: logic.paste(self.tree_paths[f'{self.tv_order[0]}'])],
+            ['F5 Paste', lambda: logic.paste(self.tv_list(), self.tree_paths)],
             ['F6 Rename', lambda: self.rename(logic)],
             ['F7 Delete', lambda: logic.delete_file_dir(self.active_selection)],
             ['F8 MkFile', None],
@@ -175,10 +175,11 @@ class UI:
     #
     def tv_list(self):
         if len(self.tree_1.selection()) > 0:
-            self.tv_order = (self.tree_1, self.tree_2)
+            self.tv_order = [self.tree_1, self.tree_2]
         elif len(self.tree_2.selection()) > 0:
-            self.tv_order = (self.tree_1, self.tree_2)
-        print(self.tree_paths[f'{self.tv_order[0]}'])
+            self.tv_order = [self.tree_1, self.tree_2]
+        return self.tv_order
+        #print(self.tree_paths[self.tv_order[0]])
 
 
     def active_selection(self):
@@ -195,6 +196,8 @@ class UI:
             self.uf_label.configure(text='Enter New Name:')
             self.entry_text.set(Path(path).name)
             self.uf_ok_button.configure(command=lambda: logic.rename(path, self.entry_text, self.destroy_user_window))
+
+    # paste(self, self.tv_list, self.tree_paths):
 
 
 
@@ -226,10 +229,10 @@ class UI:
         '''obnowqwa nadpisa gore w lqwo'''
 
         if tv == self.tree_1:
-            self.tree_paths['tv_1'] = path
+            self.tree_paths[self.tree_1] = path
             self.lf_1.configure(text=path)
         else:
-            self.tree_paths['tv_2'] = path
+            self.tree_paths[self.tree_1] = path
             self.lf_2.configure(text=path)
 
 
@@ -284,18 +287,25 @@ class UI:
         self.uf.grid(row=0, column=0,padx=20, pady=20)
 
         self.uf_label = ttk.Label(self.uf)
-        self.uf_label.grid(row=0, column=0, columnspan=2)
+        self.uf_label.grid(row=0, column=0, columnspan=2)  ##########
 
         self.entry_text = StringVar()
         vcmd = (root.register(self.accepted_characters), '%S')
         self.uf_entry = Entry(self.uf, width=25, textvariable=self.entry_text, validate='key', vcmd=vcmd)
-        self.uf_entry.grid(row=1, column=0, columnspan=2, ipady=3, pady=10,  sticky=NSEW)
+        self.uf_entry.grid(row=1, column=0, columnspan=2, ipady=3, pady=10,  sticky=NSEW)  #########
 
         self.uf_ok_button = ttk.Button(self.uf, text='OK')
         self.uf_ok_button.grid(row=2, column=0,)
 
-        self.uf_cancel_button = ttk.Button(self.uf, text='Cancel', command=self.destroy_user_window )
-        self.uf_cancel_button.grid(row=2, column=1 )
+        self.uf_cancel_button = ttk.Button(self.uf, text='Cancel', command=self.destroy_user_window)
+        self.uf_cancel_button.grid(row=2, column=1)
+
+        permissions = ['read by owner', 'write by owner', 'execute by owner',
+                       'read by group', 'write by group', 'execute by group',
+                       'read by others', 'write by others', 'execute by others']
+
+        for line in permissions:
+            Checkbutton(self.uf, text="accept T&C", variable=cb, onvalue=1, offvalue=0,).pack()
 
         self.user_window.update()
         self.user_frame_position()
