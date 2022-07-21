@@ -107,6 +107,10 @@ class UI:
             tree["displaycolumns"] = ('#1', '#2', '#3')
             tree.tag_configure('dir', foreground='light gray')
             tree.tag_configure('file', foreground='cyan4')
+            tree.tag_configure('copy', foreground='yellow')
+            tree.tag_configure('cut', foreground='red')
+
+
             tree.heading('#1', text='Name')
             tree.heading('#2', text='Size')
             tree.heading('#3', text='Modify time')
@@ -126,13 +130,13 @@ class UI:
         bttns = [
             ['F1 Help', None],
             ['F2 ?!?!?', None ],
-            ['F3 Cut', None],
-            ['F4 Copy', None],
+            ['F3 Cut', lambda: logic.copy_file_folder(self.active_selection)],
+            ['F4 Copy', lambda: logic.copy_file_folder(self.active_selection)],
             ['F5 Paste', None],
             ['F6 Rename', lambda: self.rename(logic)],
-            ['F7 DelDir', None],
+            ['F7 Delete', lambda: logic.delete_file_dir(self.active_selection)],
             ['F8 MkFile', None],
-            ['F9 DelFile', None],
+            ['F9 ?!?!?', None],
             ['F10 Quit', None]
         ]
 
@@ -176,13 +180,14 @@ class UI:
             return self.tree_2.item(self.tree_2.focus())
 
     def rename(self, logic):
-        self.create_user_window()
-        self.uf_label.configure(text='Enter New Name:')
-        self.entry_text.set(self.active_selection()['text'].rsplit('/', 1)[-1])
-        self.uf_ok_button.configure(command=lambda: logic.rename(self.active_selection(), self.entry_text, self.destroy_user_window))
+        print(self.active_selection())
+        path = self.active_selection()['text']
+        if self.active_selection()['values'][0] != '/..':
+            self.create_user_window()
+            self.uf_label.configure(text='Enter New Name:')
+            self.entry_text.set(Path(path).name)
+            self.uf_ok_button.configure(command=lambda: logic.rename(path, self.entry_text, self.destroy_user_window))
 
-    def delete(self, logic):
-        logic.delete_file_dir(self.active_selection())
 
 
     def toggle_tree_info(self, event, tv):

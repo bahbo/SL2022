@@ -4,15 +4,19 @@ from tkinter import ttk
 import os
 import stat
 from pathlib import Path
+import shutil
 from datetime import datetime
 
 
 class MainLogic:
 
     def __init__(self):
-        self.current_folder = os.path.expanduser('~')
-        self.current_selection = None
+        #self.current_folder = os.path.expanduser('~')
+        #self.current_selection = None
         self.tree_paths = [[None], [None], [None]]
+        self.copied_object = None
+        self.cut_object = None
+
 
     #
     def get_update_tree(self, path, sort_key=1):  # try except  NotADirectoryError: [Errno 20] Not a directory: '/tmp/config-err-L3yImR'
@@ -47,7 +51,7 @@ class MainLogic:
         try:
             dir_items = self.get_update_tree(path)
         except PermissionError as pe:
-            messagebox.showerror("showerror", f'{pe}')
+            messagebox.showerror('Error', pe.strerror)
         else:
             for entry in tv.get_children():
                 tv.delete(entry)
@@ -65,20 +69,37 @@ class MainLogic:
 
 
 
-    def rename(self, selection, entry_text, destroy_user_window):
+    def rename(self, path, entry_text, destroy_user_window):
 
-        if selection['values'][0] != '/..':
-            path = selection['text']
-            base_path = path.rsplit('/', 1)[0]
-            old_name = path.rsplit('/', 1)[1]
-            if old_name != entry_text.get():
-                try:
-                    os.rename(path, '/'.join([base_path, entry_text.get()]))
-                except PermissionError as pe:
-                    messagebox.showerror("showerror", f'{pe}')
-            destroy_user_window()
+        base_path = str(Path(path).parent)
+        old_name = str(Path(path).name)
+        if old_name != entry_text.get():
+            try:
+                os.rename(path, '/'.join([base_path, entry_text.get()]))
+            except PermissionError as pe:
+                messagebox.showerror('Error', pe.strerror)
+        destroy_user_window()
 
     def delete_file_dir(self, selection):
+        path = selection()['text']
+        if selection()['values'][0] != '/..':
+            if messagebox.askyesno('Delete', 'Are you sure you want to delete {}?'.format(Path(selection()['text']).name)):
+                try:
+                    if os.path.isfile(path) or os.path.islink(path):
+                        os.remove(path)
+                    elif os.path.isdir(path):
+                        shutil.rmtree(path)
+                except PermissionError as pe:
+                    messagebox.showerror('Error', pe.strerror)
+
+    def copy_file_folder(self, selection):
+        path = selection()['text']
+        if selection()['values'][0] != '/..':
+            self.copied_object = path
+            selection()['tags'] = 'copy'
+
+            ### da se otrazqwa kopiraneto
+
 
 
     #
