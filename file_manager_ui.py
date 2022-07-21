@@ -28,7 +28,7 @@ class UI:
         self.my_style.configure('TLabel',
                                 background='cyan4',
                                 font=('Monospace', 11))
-        self.my_style.configure('TFrame', background='red')
+        #self.my_style.configure('TFrame', background='red')
 
         self.my_style.configure('Treeview.Heading',
                                 # relief=FLAT,
@@ -151,8 +151,8 @@ class UI:
         self.tree_1.bind('<Double-Button-1>', lambda event: self.item_selected_click(event, logic, self.tree_1))
         self.tree_2.bind('<Double-Button-1>', lambda event: self.item_selected_click(event, logic, self.tree_2))
 
-        self.tree_1.bind('<Return>', lambda event: self.item_selected_enter(event, logic, self.tree_1))
-        self.tree_2.bind('<Return>', lambda event: self.item_selected_enter(event, logic, self.tree_2))
+        self.tree_1.bind('<Return>', lambda event: self.item_selected_enter(logic, self.tree_1))
+        self.tree_2.bind('<Return>', lambda event: self.item_selected_enter(logic, self.tree_2))
 
         self.tree_1.bind('<FocusIn>', lambda event: self.update_active_position(event, self.tree_1))
         self.tree_2.bind('<FocusIn>', lambda event: self.update_active_position(event, self.tree_2))
@@ -169,21 +169,22 @@ class UI:
 
     #
 
-    def chose_active_tv(self):
+    def active_selection(self):
         if len(self.tree_1.selection()) > 0:
-            self.tv_order = [self.tree_1, self.tree_2]
+            return self.tree_1.item(self.tree_1.focus())
         elif len(self.tree_2.selection()) > 0:
-            self.tv_order = [self.tree_2, self.tree_1]
+            return self.tree_2.item(self.tree_2.focus())
 
     def rename(self, logic):
-        self.chose_active_tv()
         self.create_user_window()
-        selection = self.tv_order[0].item(self.tv_order[0].focus())
         self.uf_label.configure(text='Enter New Name:')
-        self.entry_text.set(selection['values'][0])
-        self.uf_ok_button.configure(command= lambda:logic.rename(selection, self.entry_text, self.uf_label, self.destroy_user_window))
+        self.entry_text.set(self.active_selection()['text'].rsplit('/', 1)[-1])
+        self.uf_ok_button.configure(command=lambda: logic.rename(self.active_selection(), self.entry_text, self.destroy_user_window))
 
-    #
+    def delete(self, logic):
+        logic.delete_file_dir(self.active_selection())
+
+
     def toggle_tree_info(self, event, tv):
         '''Pokazwa i skriwa dopylnitelnite koloni '''
         if tv["displaycolumns"] == ('#1', '#2', '#3'):
@@ -224,12 +225,10 @@ class UI:
         if region == 'heading':
             pass
         elif region == 'cell':
-            selected_path = tree_view.item(tree_view.selection())['text']
-            logic.insert_tree_values(tree_view, selected_path)
-            self.update_tree_home_path(tree_view, selected_path)
+            self.item_selected_enter(logic, tree_view)
 
     #
-    def item_selected_enter(self, event, logic, tree_view):
+    def item_selected_enter(self, logic, tree_view):
         selected_path = tree_view.item(tree_view.selection())['text']
         logic.insert_tree_values(tree_view, selected_path)
         self.update_tree_home_path(tree_view, selected_path)

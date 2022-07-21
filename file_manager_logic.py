@@ -65,8 +65,7 @@ class MainLogic:
 
 
 
-    def rename(self, selection, entry_text, uf_label, destroy_user_window):
-        #tv_order, uf_label, entry_text, destroy_user_window = args
+    def rename(self, selection, entry_text, destroy_user_window):
 
         if selection['values'][0] != '/..':
             path = selection['text']
@@ -79,6 +78,7 @@ class MainLogic:
                     messagebox.showerror("showerror", f'{pe}')
             destroy_user_window()
 
+    def delete_file_dir(self, selection):
 
 
     #
