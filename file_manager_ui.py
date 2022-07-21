@@ -21,6 +21,7 @@ class UI:
         self.root = root
         self.root.title('File Manager')
 
+
         self.my_style = ttk.Style()
         # my_style.theme_use('default')
         # print(my_style.theme_names())
@@ -100,7 +101,7 @@ class UI:
         self.tree_2.pack(fill='both', side=LEFT, expand=True)
         self.last_selection_tree_2 = None
 
-        self.tree_paths = {self.tree_1: [None, [None], [None]], self.tree_2: [None, [None], [None]]}
+        self.tree_paths = {'tv_1': None, 'tv_2': None}
 
         #
         for tree in (self.tree_1, self.tree_2):
@@ -129,10 +130,10 @@ class UI:
 
         bttns = [
             ['F1 Help', None],
-            ['F2 ?!?!?', None ],
-            ['F3 Cut', lambda: logic.copy_file_folder(self.active_selection)],
+            ['F2 ?!?!?', None],
+            ['F3 Cut', lambda: logic.cut_file_folder(self.active_selection)],
             ['F4 Copy', lambda: logic.copy_file_folder(self.active_selection)],
-            ['F5 Paste', None],
+            ['F5 Paste', lambda: logic.paste(self.tree_paths[f'{self.tv_order[0]}'])],
             ['F6 Rename', lambda: self.rename(logic)],
             ['F7 Delete', lambda: logic.delete_file_dir(self.active_selection)],
             ['F8 MkFile', None],
@@ -177,6 +178,7 @@ class UI:
             self.tv_order = (self.tree_1, self.tree_2)
         elif len(self.tree_2.selection()) > 0:
             self.tv_order = (self.tree_1, self.tree_2)
+        print(self.tree_paths[f'{self.tv_order[0]}'])
 
 
     def active_selection(self):
@@ -185,8 +187,8 @@ class UI:
         elif len(self.tree_2.selection()) > 0:
             return self.tree_2.item(self.tree_2.focus())
 
+
     def rename(self, logic):
-        print(self.active_selection())
         path = self.active_selection()['text']
         if self.active_selection()['values'][0] != '/..':
             self.create_user_window()
@@ -224,8 +226,10 @@ class UI:
         '''obnowqwa nadpisa gore w lqwo'''
 
         if tv == self.tree_1:
+            self.tree_paths['tv_1'] = path
             self.lf_1.configure(text=path)
         else:
+            self.tree_paths['tv_2'] = path
             self.lf_2.configure(text=path)
 
 
@@ -259,8 +263,8 @@ class UI:
             self.tree_2.selection_set(self.last_selection_tree_2)
             self.tree_1.selection_toggle(self.tree_1.selection())
             self.active_pos_2.set(tv.item(self.tree_2.selection())['values'][0])
-            print(tv.item(self.tree_2.focus())['text'])
-            print(tv.item(self.tree_2.focus())['text'].rsplit('/',1))
+            # print(tv.item(self.tree_2.focus())['text'])
+            # print(tv.item(self.tree_2.focus())['text'].rsplit('/',1))
 
     #
     def accepted_characters(self, S):

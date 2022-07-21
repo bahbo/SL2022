@@ -97,6 +97,7 @@ class MainLogic:
         if selection()['values'][0] != '/..':
             self.copied_object = path
             self.cut_object = None
+            print('ok')
             # tv.item(selection(), tags='copy')
             # print(selection()['tags'])
 
@@ -113,17 +114,24 @@ class MainLogic:
 
             ### da se otrazqwa kopiraneto
 
-    def paste(self, selected, location):
-    #
-    # def rename_file(self, *args):
-    #     lb, new_name, del_edit_spot, refresh_lb, old_name = args
-    #     self.get_tree(lb)
-    #     self.current_root = self.get_active_lb_root()
-    #     os.chdir(self.current_root)
-    #     if old_name != new_name:
-    #         os.rename(old_name, new_name)
-    #     del_edit_spot()
-    #     refresh_lb()
+    def paste(self, location):
+        if self.copied_object is not None:
+            print('ok')
+            name = Path(self.copied_object).name
+            try:
+                if os.path.isfile(self.copied_object) or os.path.islink(self.copied_object):
+                    shutil.copy2(self.copied_object, location+name)
+                elif os.path.isdir(self.copied_object):
+                    shutil.copytree(self.copied_object, location+name)
+            except PermissionError as pe:
+                messagebox.showerror('Error', pe.strerror)
+
+        elif self.cut_object is not None:
+            name = Path(self.cut_object).name
+            try:
+                shutil.move(self.cut_object, location+name)
+            except PermissionError as pe:
+                messagebox.showerror('Error', pe.strerror)
 
 
     #
@@ -160,6 +168,3 @@ class MainLogic:
 # for col in columns:
 #     self.tree_1.heading(col, text=col, command=lambda _col=col: \
 #         treeview_sort_column(tree, _col, False))
-
-
-#
