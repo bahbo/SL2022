@@ -64,7 +64,7 @@ class MainLogic:
             for index, item in enumerate(dir_items[2]):
                 tv.insert('', END, tags='file', text=self.tree_paths[2][index][0],
                           values=tuple(self.tree_paths[2][index][1:]))
-                #TODO onother enumerate
+                ## TODO onother enumerate
             tv.focus(tv.get_children()[0])
             tv.selection_set(tv.get_children()[0])
 
@@ -81,7 +81,8 @@ class MainLogic:
             except PermissionError as pe:
                 messagebox.showerror('Error', pe.strerror)
         destroy_user_window()
-        # TODO refresh tvs
+
+        ## TODO refresh tvs
 
     def delete_file_dir(self, selection):
         path = selection()['text']
@@ -94,7 +95,7 @@ class MainLogic:
                         shutil.rmtree(path)
                 except PermissionError as pe:
                     messagebox.showerror('Error', pe.strerror)
-        # TODO refresh tvs
+        ## TODO refresh tvs
 
     def copy_file_folder(self, selection):
         path = selection()['text']
@@ -104,8 +105,8 @@ class MainLogic:
             # tv.item(selection(), tags='copy')
             # print(selection()['tags'])
 
-            # TODO mark cut object
-            # TODO refresh tvs
+            ## TODO mark cut object
+            ## TODO refresh tvs
 
     def cut_file_folder(self, selection):
         path = selection()['text']
@@ -137,6 +138,35 @@ class MainLogic:
 
         # TODO marked object
         # TODO refresh tvs
+
+    def get_obj_perm(self, path, perm):
+        for p in perm:
+            if bool(os.stat(path).st_mode & perm[p][0]):
+                perm[p][1].set(1)
+            else:
+                perm[p][1].set(0)
+
+    def set_obj_perm(self, path, perm, destroy_window):
+        new_perm = 0
+        for p in perm:
+            if perm[p][1].get() == 1:
+                new_perm += perm[p][0]
+            #print('|'.join(new_perm))
+        try:
+            os.chmod(path, (new_perm))
+        except PermissionError:
+            print('ne stawa')
+
+
+
+
+
+        destroy_window()
+        # def isgroupreadable(filepath):
+        #     st = os.stat(filepath)
+        #     return bool(st.st_mode & stat.S_IRGRP)
+
+
     #
     # def search_alg(self, search_dir, name):
     #     results = []

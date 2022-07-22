@@ -10,6 +10,7 @@ from datetime import datetime
 class UI:
 
     def __init__(self, root, logic):
+        self.permissions = None
         self.uf_perm = None
         self.entry_text = None
         self.uf_cancel_button = None
@@ -196,7 +197,8 @@ class UI:
             self.create_user_window()
             self.uf_entry.grid(row=1, column=0, columnspan=2, ipady=3, pady=10, padx=20, sticky=NSEW)
             self.uf_label.configure(text='Enter New Name:')
-            self.uf_ok_button.configure(command=lambda: logic.rename(path, self.entry_text, self.destroy_user_window))
+            self.entry_text.set(Path(path).name)
+            self.uf_ok_button.configure(command=lambda: logic.rename(path, self.destroy_user_window))
 
 
     def edit_permisions(self, logic):
@@ -206,7 +208,8 @@ class UI:
             self.uf_perm.grid(row=1, column=0, columnspan=2, pady=10, padx=20)
             self.uf_label.configure(text='Chmod')
             self.entry_text.set(Path(path).name)
-            self.uf_ok_button.configure(command=lambda: logic.rename(path, self.entry_text, self.destroy_user_window))
+            logic.get_obj_perm(path, self.permissions)
+            self.uf_ok_button.configure(command=lambda: logic.set_obj_perm(path, self.permissions, self.destroy_user_window))
 
 
 
@@ -321,7 +324,7 @@ class UI:
         var_s_iwoth = IntVar()
         var_s_ixoth = IntVar()
 
-        permissions = {
+        self.permissions = {
             'Read by owner': [stat.S_IRUSR, var_s_irusr],
             'Write by owner': [stat.S_IWUSR, var_s_iwusr],
             'Execute by owner': [stat.S_IXUSR, var_s_ixusr],
@@ -334,10 +337,8 @@ class UI:
         }
 
         self.uf_perm = ttk.Frame(self.user_window)
-        #self.uf_perm.grid(row=1, column=0, columnspan=2, pady=10, padx=20)
-
-        for index, perm in enumerate(permissions):
-            Checkbutton(self.uf_perm, text=perm, variable=permissions[perm][1]).grid(row=index, column=1, sticky=W)  #variable=cb,
+        for index, perm in enumerate(self.permissions):
+            Checkbutton(self.uf_perm, text=perm, variable=self.permissions[perm][1]).grid(row=index, column=1, sticky=W)
 
         self.user_window.update()
         self.user_frame_position()
