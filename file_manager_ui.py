@@ -13,16 +13,14 @@ class UI:
         self.permissions = None
         self.uf_perm = None
         self.entry_text = None
-        self.uf_cancel_button = None
         self.uf_ok_button = None
         self.uf_entry = None
         self.uf_label = None
         self.user_window = None
         self.tv_order = [None]
+
         self.root = root
         self.root.title('File Manager')
-
-
 
         self.my_style = ttk.Style()
         # my_style.theme_use('default')
@@ -52,7 +50,8 @@ class UI:
                           background=[('selected', 'cyan4')],
                           foreground=[('selected', 'black')])
 
-        # my_style.map('TButton', background=[('pressed', 'cyan4'), ('active', 'cyan4')])
+        self.my_style.map('TButton', relief=FLAT,
+                          background=[('pressed', 'cyan4'), ('active', 'cyan4'), ('!active', 'cyan4')])
         self.my_style.configure('TSeparator', background='red')
 
         self.my_style.configure('TLabelframe.Label',
@@ -123,7 +122,7 @@ class UI:
             tree.column('#3', width=120, stretch=False)
 
         #
-        ttk.Separator(self.root, orient='horizontal', ).grid(row=3, column=0, sticky="ew")
+        #ttk.Separator(self.root, orient='horizontal', ).grid(row=3, column=0, sticky="ew")
 
         self.user_window = None
 
@@ -161,16 +160,14 @@ class UI:
         self.tree_1.bind('<Return>', lambda event: self.item_selected_enter(logic, self.tree_1))
         self.tree_2.bind('<Return>', lambda event: self.item_selected_enter(logic, self.tree_2))
 
-        self.tree_1.bind('<FocusIn>', lambda event: self.update_active_position(event, self.tree_1))
-        self.tree_2.bind('<FocusIn>', lambda event: self.update_active_position(event, self.tree_2))
+        self.tree_1.bind('<FocusIn>', lambda event: self.toggle_tv(event, self.tree_1))
+        self.tree_2.bind('<FocusIn>', lambda event: self.toggle_tv(event, self.tree_2))
 
         self.tree_1.bind('<F5>', lambda event: self.toggle_tree_info(event, self.tree_1))
         self.tree_2.bind('<F5>', lambda event: self.toggle_tree_info(event, self.tree_2))
 
-        # self.tree_1.bind('<Button-1>', lambda event, x=self.tree_1: update_current_selection(event, x))
-
-        # self.tree_1.bind('<FocusIn>', lambda event: self.proba_1)
-        # self.tree_2.bind('<FocusIn>', lambda event: self.proba_2)
+        self.tree_1.bind('<<TreeviewSelect>>', self.active_selection)
+        self.tree_2.bind('<<TreeviewSelect>>', self.active_selection)
 
     ######
 
@@ -183,11 +180,12 @@ class UI:
         return self.tv_order
 
 
-
-    def active_selection(self):
+    def active_selection(self, *args):
         if len(self.tree_1.selection()) > 0:
+            self.active_pos_1.set(self.tree_1.item(self.tree_1.selection())['values'][0])
             return self.tree_1.item(self.tree_1.focus())
         elif len(self.tree_2.selection()) > 0:
+            self.active_pos_2.set(self.tree_2.item(self.tree_2.selection())['values'][0])
             return self.tree_2.item(self.tree_2.focus())
 
 
@@ -196,9 +194,10 @@ class UI:
         if self.active_selection()['values'][0] != '/..':
             self.create_user_window()
             self.uf_entry.grid(row=1, column=0, columnspan=2, ipady=3, pady=10, padx=20, sticky=NSEW)
+            self.user_window.update()
             self.uf_label.configure(text='Enter New Name:')
             self.entry_text.set(Path(path).name)
-            self.uf_ok_button.configure(command=lambda: logic.rename(path, self.destroy_user_window))
+            self.uf_ok_button.configure(command=lambda: logic.rename(path, self.entry_text, self.destroy_user_window))
 
 
     def edit_permisions(self, logic):
@@ -210,6 +209,7 @@ class UI:
             self.entry_text.set(Path(path).name)
             logic.get_obj_perm(path, self.permissions)
             self.uf_ok_button.configure(command=lambda: logic.set_obj_perm(path, self.permissions, self.destroy_user_window))
+            self.user_window.update()
 
 
 
@@ -262,26 +262,20 @@ class UI:
         selected_path = tree_view.item(tree_view.selection())['text']
         logic.insert_tree_values(tree_view, selected_path)
         self.update_tree_home_path(tree_view, selected_path)
-        #print(bool(os.stat(selected_path).st_mode & stat.S_IRGRP))
-        # def isgroupreadable(filepath):
-        #     st = os.stat(filepath)
-        #     return bool(st.st_mode & stat.S_IRGRP)
-
 
     #
-    def update_active_position(self, event, tv):
-        '''obnowqwa reda za izbrana pappka '''
+    def toggle_tv(self, event, tv):
+        '''toggle selection between treeviews '''
         if tv == self.tree_1:
             self.last_selection_tree_1 = self.tree_1.focus()
             self.tree_1.selection_set(self.last_selection_tree_1)
             self.tree_2.selection_toggle(self.tree_2.selection())
-            self.active_pos_1.set(tv.item(self.tree_1.selection())['values'][0])
-
         else:
             self.last_selection_tree_2 = self.tree_2.focus()
             self.tree_2.selection_set(self.last_selection_tree_2)
             self.tree_1.selection_toggle(self.tree_1.selection())
-            self.active_pos_2.set(tv.item(self.tree_2.selection())['values'][0])
+
+    #
 
 
     #
@@ -291,15 +285,12 @@ class UI:
         return False
 
     def create_user_window(self):
-        '''Creates new Toplavel window, and places it in the center of the mainwindow.
-        Creates , buttons, label and entry.'''
         self.user_window = Toplevel(root)
         self.user_window.transient(master=root)
         self.user_window.wm_attributes('-type', 'splash')
         self.user_window.grab_set()
+
         #
-
-
         self.uf_label = ttk.Label(self.user_window)
         self.uf_label.grid(row=0, column=0, columnspan=2, pady=(10, 0))  ##########
 
@@ -310,9 +301,7 @@ class UI:
         self.uf_ok_button = ttk.Button(self.user_window, text='OK')
         self.uf_ok_button.grid(row=2, column=0, pady=(0, 10))
 
-        self.uf_cancel_button = ttk.Button(self.user_window, text='Cancel', command=self.destroy_user_window)
-        self.uf_cancel_button.grid(row=2, column=1, pady=(0, 10))
-
+        ttk.Button(self.user_window, text='Cancel', command=self.destroy_user_window).grid(row=2, column=1, pady=(0, 10))
 
         var_s_irusr = IntVar()
         var_s_iwusr = IntVar()
@@ -324,21 +313,21 @@ class UI:
         var_s_iwoth = IntVar()
         var_s_ixoth = IntVar()
 
-        self.permissions = {
-            'Read by owner': [stat.S_IRUSR, var_s_irusr],
-            'Write by owner': [stat.S_IWUSR, var_s_iwusr],
-            'Execute by owner': [stat.S_IXUSR, var_s_ixusr],
-            'Read by group': [stat.S_IRGRP, var_s_irgrp],
-            'Write by group': [stat.S_IWGRP, var_s_iwgrp],
-            'Execute by group': [stat.S_IXGRP, var_s_ixgrp],
-            'Read by others': [stat.S_IROTH, var_s_iroth],
-            'Write by others': [stat.S_IWOTH, var_s_iwoth],
-            'Execute by others': [stat.S_IXOTH, var_s_ixoth]
-        }
+        self.permissions = [
+            ['Read by owner', var_s_irusr],
+            ['Write by owner', var_s_iwusr],
+            ['Execute by owner', var_s_ixusr],
+            ['Read by group', var_s_irgrp],
+            ['Write by group', var_s_iwgrp],
+            ['Execute by group', var_s_ixgrp],
+            ['Read by others', var_s_iroth],
+            ['Write by others', var_s_iwoth],
+            ['Execute by others', var_s_ixoth]
+        ]
 
         self.uf_perm = ttk.Frame(self.user_window)
-        for index, perm in enumerate(self.permissions):
-            Checkbutton(self.uf_perm, text=perm, variable=self.permissions[perm][1]).grid(row=index, column=1, sticky=W)
+        for x in range(len(self.permissions)):
+            Checkbutton(self.uf_perm, text=self.permissions[x][0], variable=self.permissions[x][1]).grid(row=x, column=1, sticky=W)
 
         self.user_window.update()
         self.user_frame_position()
@@ -374,5 +363,7 @@ gui = UI(root, logic1)
 
 logic1.insert_tree_values(gui.tree_2, os.path.expanduser('~'))
 logic1.insert_tree_values(gui.tree_1, os.path.expanduser('~'))
+gui.update_tree_home_path(gui.tree_2, os.path.expanduser('~'))
+gui.update_tree_home_path(gui.tree_1, os.path.expanduser('~'))
 
 root.mainloop()

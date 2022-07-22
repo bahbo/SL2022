@@ -16,12 +16,16 @@ class MainLogic:
         self.tree_paths = [[None], [None], [None]]
         self.copied_object = None
         self.cut_object = None
-
+        self.permission_keys = [
+            stat.S_IRUSR, stat.S_IWUSR, stat.S_IXUSR,
+            stat.S_IRGRP, stat.S_IWGRP, stat.S_IXGRP,
+            stat.S_IROTH, stat.S_IWOTH, stat.S_IXOTH
+        ]
 
     #
-    def get_update_tree(self, path, sort_key=1):  # try except  NotADirectoryError: [Errno 20] Not a directory: '/tmp/config-err-L3yImR'
+    def get_update_tree(self, path, sort_key=1):  # try except  NotADirectoryError: [Errno 20] Not a directory:
 
-        self.tree_paths[1].clear()  # s.system("open " + shlex.quote(filename))  import subprocess, os, platformif platform.system() == 'Darwin':       # macOS    subprocess.call(('open', filepath))elif platform.system() == 'Windows':    # Windows    os.startfile(filepath)else:                                   # linux variants    subprocess.call(('xdg-open', filepath))
+        self.tree_paths[1].clear()  # s.system("open " + shlex.quote(filename))  import subprocess, os, platformif platform.system() == 'Darwin':        # linux variants    subprocess.call(('xdg-open', filepath))
         self.tree_paths[2].clear()
 
         if path != os.path.abspath(os.sep):
@@ -48,7 +52,7 @@ class MainLogic:
 
     def insert_tree_values(self, tv, path):
         ''' zarejda informaciqta ot logikata w izbranoto TV'''
-        try:                                                         #if os.access(path, os.X_OK or os.R_OK)
+        try:
             dir_items = self.get_update_tree(path)
 
         except PermissionError as pe:
@@ -67,6 +71,7 @@ class MainLogic:
                 ## TODO onother enumerate
             tv.focus(tv.get_children()[0])
             tv.selection_set(tv.get_children()[0])
+
 
 
 
@@ -140,23 +145,23 @@ class MainLogic:
         # TODO refresh tvs
 
     def get_obj_perm(self, path, perm):
-        for p in perm:
-            if bool(os.stat(path).st_mode & perm[p][0]):
-                perm[p][1].set(1)
-            else:
-                perm[p][1].set(0)
+        for x in range(len(perm)):
+            if bool(os.stat(path).st_mode & self.permission_keys[x]):
+                perm[x][1].set(1)
 
+    #
     def set_obj_perm(self, path, perm, destroy_window):
         new_perm = 0
-        for p in perm:
-            if perm[p][1].get() == 1:
-                new_perm += perm[p][0]
-            #print('|'.join(new_perm))
-        try:
-            os.chmod(path, (new_perm))
-        except PermissionError:
-            print('ne stawa')
+        for x in range(len(perm)):
+            if perm[x][1].get() == 1:
+                new_perm += self.permission_keys[x]
 
+        try:
+            os.chmod(path, new_perm)
+        except PermissionError as pe:
+            messagebox.showerror('Error', pe.strerror)
+
+        # TODO refresh tvs
 
 
 
