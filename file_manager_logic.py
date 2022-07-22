@@ -48,21 +48,23 @@ class MainLogic:
 
     def insert_tree_values(self, tv, path):
         ''' zarejda informaciqta ot logikata w izbranoto TV'''
-        try:
+        try:                                                         #if os.access(path, os.X_OK or os.R_OK)
             dir_items = self.get_update_tree(path)
+
         except PermissionError as pe:
             messagebox.showerror('Error', pe.strerror)
         else:
             for entry in tv.get_children():
                 tv.delete(entry)
             for index, item in enumerate(dir_items[1]):
-                tv.insert('', END, tags='dir', iid=self.tree_paths[1][index][0], text=self.tree_paths[1][index][0],
+                tv.insert('', END, tags='dir', text=rf'{self.tree_paths[1][index][0]}',
                           values=tuple(self.tree_paths[1][index][1:]))
+
 
             for index, item in enumerate(dir_items[2]):
                 tv.insert('', END, tags='file', text=self.tree_paths[2][index][0],
                           values=tuple(self.tree_paths[2][index][1:]))
-
+                #TODO onother enumerate
             tv.focus(tv.get_children()[0])
             tv.selection_set(tv.get_children()[0])
 
@@ -79,6 +81,7 @@ class MainLogic:
             except PermissionError as pe:
                 messagebox.showerror('Error', pe.strerror)
         destroy_user_window()
+        # TODO refresh tvs
 
     def delete_file_dir(self, selection):
         path = selection()['text']
@@ -91,18 +94,18 @@ class MainLogic:
                         shutil.rmtree(path)
                 except PermissionError as pe:
                     messagebox.showerror('Error', pe.strerror)
+        # TODO refresh tvs
 
     def copy_file_folder(self, selection):
         path = selection()['text']
         if selection()['values'][0] != '/..':
             self.copied_object = path
             self.cut_object = None
-            print('ok')
             # tv.item(selection(), tags='copy')
             # print(selection()['tags'])
 
-            ### da se otrazqwa kopiraneto
-
+            # TODO mark cut object
+            # TODO refresh tvs
 
     def cut_file_folder(self, selection):
         path = selection()['text']
@@ -112,34 +115,28 @@ class MainLogic:
             # tv.item(selection(), tags='copy')
             # print(selection()['tags'])
 
-            ### da se otrazqwa kopiraneto
+            #TODO mark cut object
+            #TODO refresh tvs
 
     def paste(self, tv_list, tree_paths):
-        print(tv_list[0])
         location = tree_paths[tv_list[0]]
-        if self.copied_object is not None:
-            print('ok')
-            name = Path(self.copied_object).name
-            try:
+        try:
+            if self.copied_object is not None:
+                name = Path(self.copied_object).name
                 if os.path.isfile(self.copied_object) or os.path.islink(self.copied_object):
-                    shutil.copy2(self.copied_object, '/'.join([location,name]))
+                    shutil.copy2(self.copied_object, '/'.join([location, name]))
                 elif os.path.isdir(self.copied_object):
-                    shutil.copytree(self.copied_object, '/'.join([location,name]))
-            except PermissionError as pe:
-                messagebox.showerror('Error', pe.strerror)
-            #except FileExistsError:
-                pass
-            # TODO
+                    shutil.copytree(self.copied_object, '/'.join([location, name]))
 
+            elif self.cut_object is not None:
+                name = Path(self.cut_object).name
 
-        elif self.cut_object is not None:
-            name = Path(self.cut_object).name
-            try:
-                shutil.move(self.cut_object, '/'.join([location,name]))
-            except PermissionError as pe:
-                messagebox.showerror('Error', pe.strerror)
+                shutil.move(self.cut_object, '/'.join([location, name]))
+        except PermissionError as pe:
+            messagebox.showerror('Error', pe.strerror)
 
-
+        # TODO marked object
+        # TODO refresh tvs
     #
     # def search_alg(self, search_dir, name):
     #     results = []

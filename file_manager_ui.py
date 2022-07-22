@@ -10,8 +10,8 @@ from datetime import datetime
 class UI:
 
     def __init__(self, root, logic):
+        self.uf_perm = None
         self.entry_text = None
-        self.uf = None
         self.uf_cancel_button = None
         self.uf_ok_button = None
         self.uf_entry = None
@@ -20,6 +20,7 @@ class UI:
         self.tv_order = [None]
         self.root = root
         self.root.title('File Manager')
+
 
 
         self.my_style = ttk.Style()
@@ -130,11 +131,11 @@ class UI:
 
         bttns = [
             ['F1 Help', None],
-            ['F2 ?!?!?', None],
+            ['F2 Rename', lambda: self.rename(logic)],
             ['F3 Cut', lambda: logic.cut_file_folder(self.active_selection)],
             ['F4 Copy', lambda: logic.copy_file_folder(self.active_selection)],
             ['F5 Paste', lambda: logic.paste(self.tv_list(), self.tree_paths)],
-            ['F6 Rename', lambda: self.rename(logic)],
+            ['F6 Chmod', lambda: self.edit_permisions(logic)],
             ['F7 Delete', lambda: logic.delete_file_dir(self.active_selection)],
             ['F8 MkFile', None],
             ['F9 ?!?!?', None],
@@ -179,7 +180,7 @@ class UI:
         elif len(self.tree_2.selection()) > 0:
             self.tv_order = [self.tree_1, self.tree_2]
         return self.tv_order
-        #print(self.tree_paths[self.tv_order[0]])
+
 
 
     def active_selection(self):
@@ -193,11 +194,19 @@ class UI:
         path = self.active_selection()['text']
         if self.active_selection()['values'][0] != '/..':
             self.create_user_window()
+            self.uf_entry.grid(row=1, column=0, columnspan=2, ipady=3, pady=10, padx=20, sticky=NSEW)
             self.uf_label.configure(text='Enter New Name:')
-            self.entry_text.set(Path(path).name)
             self.uf_ok_button.configure(command=lambda: logic.rename(path, self.entry_text, self.destroy_user_window))
 
-    # paste(self, self.tv_list, self.tree_paths):
+
+    def edit_permisions(self, logic):
+        path = self.active_selection()['text']
+        if self.active_selection()['values'][0] != '/..':
+            self.create_user_window()
+            self.uf_perm.grid(row=1, column=0, columnspan=2, pady=10, padx=20)
+            self.uf_label.configure(text='Chmod')
+            self.entry_text.set(Path(path).name)
+            self.uf_ok_button.configure(command=lambda: logic.rename(path, self.entry_text, self.destroy_user_window))
 
 
 
@@ -250,6 +259,10 @@ class UI:
         selected_path = tree_view.item(tree_view.selection())['text']
         logic.insert_tree_values(tree_view, selected_path)
         self.update_tree_home_path(tree_view, selected_path)
+        #print(bool(os.stat(selected_path).st_mode & stat.S_IRGRP))
+        # def isgroupreadable(filepath):
+        #     st = os.stat(filepath)
+        #     return bool(st.st_mode & stat.S_IRGRP)
 
 
     #
@@ -266,8 +279,7 @@ class UI:
             self.tree_2.selection_set(self.last_selection_tree_2)
             self.tree_1.selection_toggle(self.tree_1.selection())
             self.active_pos_2.set(tv.item(self.tree_2.selection())['values'][0])
-            # print(tv.item(self.tree_2.focus())['text'])
-            # print(tv.item(self.tree_2.focus())['text'].rsplit('/',1))
+
 
     #
     def accepted_characters(self, S):
@@ -282,30 +294,50 @@ class UI:
         self.user_window.transient(master=root)
         self.user_window.wm_attributes('-type', 'splash')
         self.user_window.grab_set()
+        #
 
-        self.uf = ttk.Frame(self.user_window)
-        self.uf.grid(row=0, column=0,padx=20, pady=20)
 
-        self.uf_label = ttk.Label(self.uf)
-        self.uf_label.grid(row=0, column=0, columnspan=2)  ##########
+        self.uf_label = ttk.Label(self.user_window)
+        self.uf_label.grid(row=0, column=0, columnspan=2, pady=(10, 0))  ##########
 
         self.entry_text = StringVar()
         vcmd = (root.register(self.accepted_characters), '%S')
-        self.uf_entry = Entry(self.uf, width=25, textvariable=self.entry_text, validate='key', vcmd=vcmd)
-        self.uf_entry.grid(row=1, column=0, columnspan=2, ipady=3, pady=10,  sticky=NSEW)  #########
+        self.uf_entry = Entry(self.user_window, width=25, textvariable=self.entry_text, validate='key', vcmd=vcmd)
 
-        self.uf_ok_button = ttk.Button(self.uf, text='OK')
-        self.uf_ok_button.grid(row=2, column=0,)
+        self.uf_ok_button = ttk.Button(self.user_window, text='OK')
+        self.uf_ok_button.grid(row=2, column=0, pady=(0, 10))
 
-        self.uf_cancel_button = ttk.Button(self.uf, text='Cancel', command=self.destroy_user_window)
-        self.uf_cancel_button.grid(row=2, column=1)
+        self.uf_cancel_button = ttk.Button(self.user_window, text='Cancel', command=self.destroy_user_window)
+        self.uf_cancel_button.grid(row=2, column=1, pady=(0, 10))
 
-        permissions = ['read by owner', 'write by owner', 'execute by owner',
-                       'read by group', 'write by group', 'execute by group',
-                       'read by others', 'write by others', 'execute by others']
 
-        for line in permissions:
-            Checkbutton(self.uf, text="accept T&C", variable=cb, onvalue=1, offvalue=0,).pack()
+        var_s_irusr = IntVar()
+        var_s_iwusr = IntVar()
+        var_s_ixusr = IntVar()
+        var_s_irgrp = IntVar()
+        var_s_iwgrp = IntVar()
+        var_s_ixgrp = IntVar()
+        var_s_iroth = IntVar()
+        var_s_iwoth = IntVar()
+        var_s_ixoth = IntVar()
+
+        permissions = {
+            'Read by owner': [stat.S_IRUSR, var_s_irusr],
+            'Write by owner': [stat.S_IWUSR, var_s_iwusr],
+            'Execute by owner': [stat.S_IXUSR, var_s_ixusr],
+            'Read by group': [stat.S_IRGRP, var_s_irgrp],
+            'Write by group': [stat.S_IWGRP, var_s_iwgrp],
+            'Execute by group': [stat.S_IXGRP, var_s_ixgrp],
+            'Read by others': [stat.S_IROTH, var_s_iroth],
+            'Write by others': [stat.S_IWOTH, var_s_iwoth],
+            'Execute by others': [stat.S_IXOTH, var_s_ixoth]
+        }
+
+        self.uf_perm = ttk.Frame(self.user_window)
+        #self.uf_perm.grid(row=1, column=0, columnspan=2, pady=10, padx=20)
+
+        for index, perm in enumerate(permissions):
+            Checkbutton(self.uf_perm, text=perm, variable=permissions[perm][1]).grid(row=index, column=1, sticky=W)  #variable=cb,
 
         self.user_window.update()
         self.user_frame_position()
