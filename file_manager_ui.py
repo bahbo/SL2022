@@ -1,3 +1,4 @@
+
 from tkinter import *
 from tkinter import ttk
 import os
@@ -10,9 +11,9 @@ from datetime import datetime
 class UI:
 
     def __init__(self, root, logic):
-        self.lb_owner = None
-        self.groups_var = StringVar(value=logic.get_groups())
-        self.owners_var = StringVar(value=logic.get_users())
+        self.cb_users = None
+        self.groups_var = StringVar()
+        self.users_var = StringVar()
         self.uf_owner = None
         self.permissions = None
         self.uf_perm = None
@@ -221,11 +222,13 @@ class UI:
             self.create_user_window()
             self.uf_owner.grid(row=1, column=0, columnspan=2, pady=10, padx=20)
             self.uw_label.configure(text=f"chown: {Path(path).name}")
-            o = self.lb_owner.get(0, END).index(Path(path).owner())
-            self.lb_owner.selection_set(o)
-            g = self.lb_group.get(0, END).index(Path(path).group())
-            self.lb_group.selection_set(g)
-            self.uw_ok_button.configure(command=lambda: logic.set_obj_perm(path, self.permissions, self.destroy_user_window))
+
+            self.cb_groups.configure(values=logic.get_groups())
+            self.groups_var.set(Path(path).group())
+            self.cb_users.configure(values=logic.get_users())
+            self.users_var.set(Path(path).owner())
+
+            self.uw_ok_button.configure(command=lambda: logic.obj_chown(path, self.users_var, self.groups_var, self.destroy_user_window))
             self.user_window.update()
             self.user_frame_position()
 
@@ -345,18 +348,18 @@ class UI:
 
         self.uf_owner = ttk.Frame(self.user_window)
         #choices = ["apple", "orange", "banana", "strawberry", "lemon", "peach", "watermelon"]
-        lf_owner = ttk.LabelFrame(self.uf_owner, text='Owner')
+        lf_owner = LabelFrame(self.uf_owner, text='User', labelanchor=N)
         lf_owner.grid(column=0, row=0)
 
-        self.lb_owner = Listbox(lf_owner, listvariable=self.owners_var, selectmode=SINGLE, height=8)
-        self.lb_owner.grid(column=0, row=0)
+        self.cb_users = ttk.Combobox(lf_owner, textvariable=self.users_var, justify='center', state='readonly')
+        self.cb_users.grid(column=0, row=0)
 
 
-        lf_group = ttk.LabelFrame(self.uf_owner, text='Group')
+        lf_group = LabelFrame(self.uf_owner, text='Group', labelanchor=N,)
         lf_group.grid(column=1, row=0)
 
-        self.lb_group = Listbox(lf_group, listvariable=self.groups_var, selectmode=SINGLE, height=8)
-        self.lb_group.grid(column=1, row=0)
+        self.cb_groups = ttk.Combobox(lf_group, textvariable=self.groups_var, justify='center', state='readonly')
+        self.cb_groups.grid(column=1, row=0)
 
 
 

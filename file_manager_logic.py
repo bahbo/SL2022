@@ -182,7 +182,23 @@ class MainLogic:
         data.sort()
         return data
 
+    def obj_chown(self, path, user, group, destroy_window):
+        c_user = Path(path).owner()
+        c_group = Path(path).group()
+        try:
+            if c_user == user and c_group != group:
+                shutil.chown(path, group=group.get())
+            elif c_user != user and c_group == group:
+                shutil.chown(path, user=user.get())
+            elif c_user != user and c_group != group:
+                shutil.chown(path, user=user.get(), group=group.get())
+        except PermissionError as pe:
+            messagebox.showerror('Error', pe.strerror)
+        except BaseException as be:
+            messagebox.showerror('Error', be)
 
+        # TODO refresh tvs
+        destroy_window()
 
 
     # def search_alg(self, search_dir, name):
