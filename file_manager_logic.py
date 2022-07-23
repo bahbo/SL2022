@@ -68,7 +68,7 @@ class MainLogic:
             for index, item in enumerate(dir_items[2]):
                 tv.insert('', END, tags='file', text=self.tree_paths[2][index][0],
                           values=tuple(self.tree_paths[2][index][1:]))
-                ## TODO onother enumerate
+
             tv.focus(tv.get_children()[0])
             tv.selection_set(tv.get_children()[0])
 
@@ -86,8 +86,8 @@ class MainLogic:
             except PermissionError as pe:
                 messagebox.showerror('Error', pe.strerror)
         destroy_user_window()
-
-        ## TODO refresh tvs
+        # TODO File exists
+        # TODO refresh tvs
 
     def delete_file_dir(self, selection):
         path = selection()['text']
@@ -110,8 +110,8 @@ class MainLogic:
             # tv.item(selection(), tags='copy')
             # print(selection()['tags'])
 
-            ## TODO mark cut object
-            ## TODO refresh tvs
+            # TODO mark cut object
+            # TODO refresh tvs
 
     def cut_file_folder(self, selection):
         path = selection()['text']
@@ -141,6 +141,7 @@ class MainLogic:
         except PermissionError as pe:
             messagebox.showerror('Error', pe.strerror)
 
+        # TODO file exists
         # TODO marked object
         # TODO refresh tvs
 
@@ -162,17 +163,10 @@ class MainLogic:
             messagebox.showerror('Error', pe.strerror)
 
         # TODO refresh tvs
-
-
-
-
         destroy_window()
-        # def isgroupreadable(filepath):
-        #     st = os.stat(filepath)
-        #     return bool(st.st_mode & stat.S_IRGRP)
 
 
-    #
+
     # def search_alg(self, search_dir, name):
     #     results = []
     #     for root, dirs, files in os.walk(search_dir):
@@ -200,9 +194,3 @@ class MainLogic:
 # tv.heading(col, text=col, command=lambda _col=col: \
 #     treeview_sort_column(tv, _col, not reverse))
 
-#
-# columns = ('#1', '#2', '#3')
-
-# for col in columns:
-#     self.tree_1.heading(col, text=col, command=lambda _col=col: \
-#         treeview_sort_column(tree, _col, False))

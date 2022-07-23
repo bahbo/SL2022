@@ -112,7 +112,6 @@ class UI:
             tree.tag_configure('copy', foreground='yellow')
             tree.tag_configure('cut', foreground='cyan4')
 
-
             tree.heading('#1', text='Name')
             tree.heading('#2', text='Size')
             tree.heading('#3', text='Modify time')
@@ -151,7 +150,7 @@ class UI:
             self.b_frame.columnconfigure(x, weight=1, uniform='label')
 
 
-
+        #
         self.root.bind("<Configure>", lambda event: self.move_user_frame(event))
 
         self.tree_1.bind('<Double-Button-1>', lambda event: self.item_selected_click(event, logic, self.tree_1))
@@ -188,7 +187,7 @@ class UI:
             self.active_pos_2.set(self.tree_2.item(self.tree_2.selection())['values'][0])
             return self.tree_2.item(self.tree_2.focus())
 
-
+    #
     def rename(self, logic):
         path = self.active_selection()['text']
         if self.active_selection()['values'][0] != '/..':
@@ -199,7 +198,7 @@ class UI:
             self.entry_text.set(Path(path).name)
             self.uf_ok_button.configure(command=lambda: logic.rename(path, self.entry_text, self.destroy_user_window))
 
-
+    #
     def edit_permisions(self, logic):
         path = self.active_selection()['text']
         if self.active_selection()['values'][0] != '/..':
@@ -212,9 +211,9 @@ class UI:
             self.user_window.update()
 
 
-
+    #
     def toggle_tree_info(self, event, tv):
-        '''Pokazwa i skriwa dopylnitelnite koloni '''
+        '''Pokazwa i skriwa dopylnitelnite koloni - F5'''
         if tv["displaycolumns"] == ('#1', '#2', '#3'):
             tv["displaycolumns"] = ('#1', '#2', '#3', '#4', '#5', '#6')
             tv.heading('#4', text='Permissions')
@@ -235,7 +234,7 @@ class UI:
             tv.column('#3', width=120, stretch=False)
             tv.event_generate("<<ThemeChanged>>")
 
-    #   def
+
 
     def update_tree_home_path(self, tv, path):
         '''obnowqwa nadpisa gore w lqwo'''
@@ -275,14 +274,12 @@ class UI:
             self.tree_2.selection_set(self.last_selection_tree_2)
             self.tree_1.selection_toggle(self.tree_1.selection())
 
+
     #
 
 
-    #
-    def accepted_characters(self, S):
-        if S != '/':
-            return True
-        return False
+
+
 
     def create_user_window(self):
         self.user_window = Toplevel(root)
@@ -326,11 +323,16 @@ class UI:
         ]
 
         self.uf_perm = ttk.Frame(self.user_window)
-        for x in range(len(self.permissions)):
-            Checkbutton(self.uf_perm, text=self.permissions[x][0], variable=self.permissions[x][1]).grid(row=x, column=1, sticky=W)
+        for index, value in enumerate(self.permissions):
+            Checkbutton(self.uf_perm, text=value[0], variable=value[1]).grid(row=index, column=1, sticky=W)
 
         self.user_window.update()
         self.user_frame_position()
+
+    def accepted_characters(self, S):
+        if S != '/':
+            return True
+        return False
 
     def user_frame_position(self):
         '''Moves user window with main window'''
