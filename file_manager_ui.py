@@ -10,12 +10,16 @@ from datetime import datetime
 class UI:
 
     def __init__(self, root, logic):
+        self.lb_owner = None
+        self.groups_var = StringVar(value=logic.get_groups())
+        self.owners_var = StringVar(value=logic.get_users())
+        self.uf_owner = None
         self.permissions = None
         self.uf_perm = None
         self.entry_text = None
-        self.uf_ok_button = None
-        self.uf_entry = None
-        self.uf_label = None
+        self.uw_ok_button = None
+        self.uw_entry = None
+        self.uw_label = None
         self.user_window = None
         self.tv_order = [None]
 
@@ -134,10 +138,10 @@ class UI:
             ['F3 Cut', lambda: logic.cut_file_folder(self.active_selection)],
             ['F4 Copy', lambda: logic.copy_file_folder(self.active_selection)],
             ['F5 Paste', lambda: logic.paste(self.tv_list(), self.tree_paths)],
-            ['F6 Chmod', lambda: self.edit_permisions(logic)],
+            ['F6 Chmod', lambda: self.change_permisions(logic)],
             ['F7 Delete', lambda: logic.delete_file_dir(self.active_selection)],
             ['F8 MkFile', None],
-            ['F9 ?!?!?', None],
+            ['F9 Chown', lambda: self.change_owner_group(logic)],
             ['F10 Quit', None]
         ]
 
@@ -192,24 +196,38 @@ class UI:
         path = self.active_selection()['text']
         if self.active_selection()['values'][0] != '/..':
             self.create_user_window()
-            self.uf_entry.grid(row=1, column=0, columnspan=2, ipady=3, pady=10, padx=20, sticky=NSEW)
-            self.user_window.update()
-            self.uf_label.configure(text='Enter New Name:')
+            self.uw_entry.grid(row=1, column=0, columnspan=2, ipady=3, pady=10, padx=20, sticky=NSEW)
+            self.uw_label.configure(text='Enter New Name:')
             self.entry_text.set(Path(path).name)
-            self.uf_ok_button.configure(command=lambda: logic.rename(path, self.entry_text, self.destroy_user_window))
+            self.uw_ok_button.configure(command=lambda: logic.rename(path, self.entry_text, self.destroy_user_window))
+            self.user_window.update()
+            self.user_frame_position()
 
     #
-    def edit_permisions(self, logic):
+    def change_permisions(self, logic):
         path = self.active_selection()['text']
         if self.active_selection()['values'][0] != '/..':
             self.create_user_window()
             self.uf_perm.grid(row=1, column=0, columnspan=2, pady=10, padx=20)
-            self.uf_label.configure(text='Chmod')
-            self.entry_text.set(Path(path).name)
+            self.uw_label.configure(text=f"chmod: {Path(path).name}")
             logic.get_obj_perm(path, self.permissions)
-            self.uf_ok_button.configure(command=lambda: logic.set_obj_perm(path, self.permissions, self.destroy_user_window))
+            self.uw_ok_button.configure(command=lambda: logic.set_obj_perm(path, self.permissions, self.destroy_user_window))
             self.user_window.update()
+            self.user_frame_position()
 
+    def change_owner_group(self, logic):
+        path = self.active_selection()['text']
+        if self.active_selection()['values'][0] != '/..':
+            self.create_user_window()
+            self.uf_owner.grid(row=1, column=0, columnspan=2, pady=10, padx=20)
+            self.uw_label.configure(text=f"chown: {Path(path).name}")
+            o = self.lb_owner.get(0, END).index(Path(path).owner())
+            self.lb_owner.selection_set(o)
+            g = self.lb_group.get(0, END).index(Path(path).group())
+            self.lb_group.selection_set(g)
+            self.uw_ok_button.configure(command=lambda: logic.set_obj_perm(path, self.permissions, self.destroy_user_window))
+            self.user_window.update()
+            self.user_frame_position()
 
     #
     def toggle_tree_info(self, event, tv):
@@ -286,19 +304,18 @@ class UI:
         self.user_window.transient(master=root)
         self.user_window.wm_attributes('-type', 'splash')
         self.user_window.grab_set()
+        self.uw_ok_button = ttk.Button(self.user_window, text='OK')
+        self.uw_ok_button.grid(row=2, column=0, pady=(0, 10))
+        ttk.Button(self.user_window, text='Cancel', command=self.destroy_user_window).\
+            grid(row=2, column=1, pady=(0, 10))
 
         #
-        self.uf_label = ttk.Label(self.user_window)
-        self.uf_label.grid(row=0, column=0, columnspan=2, pady=(10, 0))  ##########
+        self.uw_label = ttk.Label(self.user_window)
+        self.uw_label.grid(row=0, column=0, columnspan=2, pady=(10, 0))  ##########
 
         self.entry_text = StringVar()
         vcmd = (root.register(self.accepted_characters), '%S')
-        self.uf_entry = Entry(self.user_window, width=25, textvariable=self.entry_text, validate='key', vcmd=vcmd)
-
-        self.uf_ok_button = ttk.Button(self.user_window, text='OK')
-        self.uf_ok_button.grid(row=2, column=0, pady=(0, 10))
-
-        ttk.Button(self.user_window, text='Cancel', command=self.destroy_user_window).grid(row=2, column=1, pady=(0, 10))
+        self.uw_entry = Entry(self.user_window, width=25, textvariable=self.entry_text, validate='key', vcmd=vcmd)
 
         var_s_irusr = IntVar()
         var_s_iwusr = IntVar()
@@ -326,8 +343,24 @@ class UI:
         for index, value in enumerate(self.permissions):
             Checkbutton(self.uf_perm, text=value[0], variable=value[1]).grid(row=index, column=1, sticky=W)
 
-        self.user_window.update()
-        self.user_frame_position()
+        self.uf_owner = ttk.Frame(self.user_window)
+        #choices = ["apple", "orange", "banana", "strawberry", "lemon", "peach", "watermelon"]
+        lf_owner = ttk.LabelFrame(self.uf_owner, text='Owner')
+        lf_owner.grid(column=0, row=0)
+
+        self.lb_owner = Listbox(lf_owner, listvariable=self.owners_var, selectmode=SINGLE, height=8)
+        self.lb_owner.grid(column=0, row=0)
+
+
+        lf_group = ttk.LabelFrame(self.uf_owner, text='Group')
+        lf_group.grid(column=1, row=0)
+
+        self.lb_group = Listbox(lf_group, listvariable=self.groups_var, selectmode=SINGLE, height=8)
+        self.lb_group.grid(column=1, row=0)
+
+
+
+
 
     def accepted_characters(self, S):
         if S != '/':

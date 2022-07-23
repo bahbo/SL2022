@@ -1,11 +1,12 @@
 from tkinter import *
 from tkinter import messagebox
-from tkinter import ttk
 import os
 import stat
 from pathlib import Path
 import shutil
 from datetime import datetime
+import pwd
+import grp
 
 
 class MainLogic:
@@ -164,6 +165,23 @@ class MainLogic:
 
         # TODO refresh tvs
         destroy_window()
+
+    def get_groups(self):
+        data = []
+        with open("/etc/group", "r") as f:
+            for line in f.readlines():
+                data.append(line.split(":")[0])
+        data.sort()
+        return data
+
+    def get_users(self):
+        data = []
+        for p in pwd.getpwall():
+            if p[0] not in data:
+                data.append(p[0])
+        data.sort()
+        return data
+
 
 
 
