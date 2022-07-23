@@ -201,16 +201,25 @@ class MainLogic:
         destroy_window()
 
 
-    # def search_alg(self, search_dir, name):
-    #     results = []
-    #     for root, dirs, files in os.walk(search_dir):
-    #         for file in files:
-    #             if name.lower() in file.lower():
-    #                 results.append(root + '/' + str(file))
-    #         for dir_ in dirs:
-    #             if name.lower() in dir_.lower():
-    #                 results.append(root + '/' + str(dir_))
-    #     return results
+    def search_alg(self, search_dir, name, destroy_user_window):
+        results = []
+        for root, dirs, files in os.walk(search_dir):
+            for file in files:
+                if name.lower() in file.lower():
+                    results.append(root + '/' + str(file))
+            for dir_ in dirs:
+                if name.lower() in dir_.lower():
+                    results.append(root + '/' + str(dir_))
+        for item in results:
+
+            info = [
+                item,
+                Path(item).stat().st_size,
+                datetime.fromtimestamp(Path(item).stat().st_mtime).strftime('%b %d %-H:%M'),
+                stat.filemode(Path(item).stat().st_mode),
+                Path(item).owner(),
+                Path(item).group()]
+            print(info)
 
 
 #

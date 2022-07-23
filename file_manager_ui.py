@@ -10,7 +10,8 @@ from datetime import datetime
 
 class UI:
 
-    def __init__(self, root, logic):
+    def __init__(self, main_window, logic):
+        self.cb_search_dir_var = None
         self.cb_users = None
         self.groups_var = StringVar()
         self.users_var = StringVar()
@@ -24,7 +25,7 @@ class UI:
         self.user_window = None
         self.tv_order = [None]
 
-        self.root = root
+        self.root = main_window
         self.root.title('File Manager')
 
         self.my_style = ttk.Style()
@@ -34,7 +35,7 @@ class UI:
         self.my_style.configure('TLabel',
                                 background='cyan4',
                                 font=('Monospace', 11))
-        #self.my_style.configure('TFrame', background='red')
+        # self.my_style.configure('TFrame', background='red')
 
         self.my_style.configure('Treeview.Heading',
                                 # relief=FLAT,
@@ -117,7 +118,7 @@ class UI:
             tree.tag_configure('copy', foreground='yellow')
             tree.tag_configure('cut', foreground='cyan4')
 
-            tree.heading('#1', text='Name')
+            tree.heading('#1', text='Name',)
             tree.heading('#2', text='Size')
             tree.heading('#3', text='Modify time')
 
@@ -126,7 +127,7 @@ class UI:
             tree.column('#3', width=120, stretch=False)
 
         #
-        #ttk.Separator(self.root, orient='horizontal', ).grid(row=3, column=0, sticky="ew")
+        # ttk.Separator(self.root, orient='horizontal', ).grid(row=3, column=0, sticky="ew")
 
         self.user_window = None
 
@@ -140,9 +141,9 @@ class UI:
             ['F4 Copy', lambda: logic.copy_file_folder(self.active_selection)],
             ['F5 Paste', lambda: logic.paste(self.tv_list(), self.tree_paths)],
             ['F6 Chmod', lambda: self.change_permisions(logic)],
-            ['F7 Delete', lambda: logic.delete_file_dir(self.active_selection)],
-            ['F8 MkFile', None],
-            ['F9 Chown', lambda: self.change_owner_group(logic)],
+            ['F7 Chown', lambda: self.change_owner_group(logic)],
+            ['F8 Search', lambda: self.search(logic)],
+            ['F9 Delete', lambda: logic.delete_file_dir(self.active_selection)],
             ['F10 Quit', None]
         ]
 
@@ -154,7 +155,7 @@ class UI:
             self.b_frame.grid_slaves(column=x)[0].config(text=bttns[x][0], takefocus=0, underline=1, )
             self.b_frame.columnconfigure(x, weight=1, uniform='label')
 
-
+        #
         #
         self.root.bind("<Configure>", lambda event: self.move_user_frame(event))
 
@@ -183,7 +184,7 @@ class UI:
             self.tv_order = [self.tree_1, self.tree_2]
         return self.tv_order
 
-
+    #
     def active_selection(self, *args):
         if len(self.tree_1.selection()) > 0:
             self.active_pos_1.set(self.tree_1.item(self.tree_1.selection())['values'][0])
@@ -212,7 +213,8 @@ class UI:
             self.uf_perm.grid(row=1, column=0, columnspan=2, pady=10, padx=20)
             self.uw_label.configure(text=f"chmod: {Path(path).name}")
             logic.get_obj_perm(path, self.permissions)
-            self.uw_ok_button.configure(command=lambda: logic.set_obj_perm(path, self.permissions, self.destroy_user_window))
+            self.uw_ok_button.configure(
+                command=lambda: logic.set_obj_perm(path, self.permissions, self.destroy_user_window))
             self.user_window.update()
             self.user_frame_position()
 
@@ -228,13 +230,34 @@ class UI:
             self.cb_users.configure(values=logic.get_users())
             self.users_var.set(Path(path).owner())
 
-            self.uw_ok_button.configure(command=lambda: logic.obj_chown(path, self.users_var, self.groups_var, self.destroy_user_window))
+            self.uw_ok_button.configure(
+                command=lambda: logic.obj_chown(path, self.users_var, self.groups_var, self.destroy_user_window))
             self.user_window.update()
             self.user_frame_position()
 
+    def search(self, logic):
+        self.create_user_window()
+        # self.uf_owner.grid(row=1, column=0, columnspan=2, pady=10, padx=20)
+        self.uw_label.configure(text='Search in:')
+        self.uw_label.grid(row=0, column=0,)
+        self.uw_entry.grid(row=2, column=0, columnspan=2, ipady=3, pady=10, padx=20, sticky=NSEW)
+        self.cb_search_dir.grid(column=0, row=1, columnspan=2, pady=(10, 0))
+        self.cb_search_dir.configure(values=['current dir', 'home', 'all'])
+        self.cb_search_dir_var.set('current dir')
+        if self.cb_search_dir_var.get() == 'current dir':
+            path = self.active_selection()['text']
+        elif self.cb_search_dir_var.get() == 'home':
+            path = os.path.expanduser('~')
+        else:
+            path = '/'
+        self.uw_ok_button.configure(
+            command=lambda: logic.search_alg(path, self.entry_text.get(), self.destroy_user_window))
+        self.user_window.update()
+        self.user_frame_position()
+
     #
     def toggle_tree_info(self, event, tv):
-        '''Pokazwa i skriwa dopylnitelnite koloni - F5'''
+        """Pokazwa i skriwa dopylnitelnite koloni - F5"""
         if tv["displaycolumns"] == ('#1', '#2', '#3'):
             tv["displaycolumns"] = ('#1', '#2', '#3', '#4', '#5', '#6')
             tv.heading('#4', text='Permissions')
@@ -255,10 +278,9 @@ class UI:
             tv.column('#3', width=120, stretch=False)
             tv.event_generate("<<ThemeChanged>>")
 
-
-
+    #
     def update_tree_home_path(self, tv, path):
-        '''obnowqwa nadpisa gore w lqwo'''
+        """obnowqwa nadpisa gore w lqwo"""
 
         if tv == self.tree_1:
             self.tree_paths[self.tree_1] = path
@@ -267,10 +289,9 @@ class UI:
             self.tree_paths[self.tree_1] = path
             self.lf_2.configure(text=path)
 
-
-
+    #
     def item_selected_click(self, event, logic, tree_view):
-        '''Double click / izbor na papka.'''
+        """Double click / izbor na papka."""
         region = tree_view.identify("region", event.x, event.y)
         if region == 'heading':
             pass
@@ -285,7 +306,7 @@ class UI:
 
     #
     def toggle_tv(self, event, tv):
-        '''toggle selection between treeviews '''
+        """toggle selection between treeviews """
         if tv == self.tree_1:
             self.last_selection_tree_1 = self.tree_1.focus()
             self.tree_1.selection_set(self.last_selection_tree_1)
@@ -295,12 +316,7 @@ class UI:
             self.tree_2.selection_set(self.last_selection_tree_2)
             self.tree_1.selection_toggle(self.tree_1.selection())
 
-
     #
-
-
-
-
 
     def create_user_window(self):
         self.user_window = Toplevel(root)
@@ -308,13 +324,13 @@ class UI:
         self.user_window.wm_attributes('-type', 'splash')
         self.user_window.grab_set()
         self.uw_ok_button = ttk.Button(self.user_window, text='OK')
-        self.uw_ok_button.grid(row=2, column=0, pady=(0, 10))
-        ttk.Button(self.user_window, text='Cancel', command=self.destroy_user_window).\
-            grid(row=2, column=1, pady=(0, 10))
+        self.uw_ok_button.grid(row=3, column=0, pady=(0, 10))
+        ttk.Button(self.user_window, text='Cancel', command=self.destroy_user_window). \
+            grid(row=3, column=1, pady=(0, 10))
 
         #
         self.uw_label = ttk.Label(self.user_window)
-        self.uw_label.grid(row=0, column=0, columnspan=2, pady=(10, 0))  ##########
+        self.uw_label.grid(row=0, column=0, columnspan=2, pady=(10, 0))
 
         self.entry_text = StringVar()
         vcmd = (root.register(self.accepted_characters), '%S')
@@ -347,19 +363,20 @@ class UI:
             Checkbutton(self.uf_perm, text=value[0], variable=value[1]).grid(row=index, column=1, sticky=W)
 
         self.uf_owner = ttk.Frame(self.user_window)
-        #choices = ["apple", "orange", "banana", "strawberry", "lemon", "peach", "watermelon"]
         lf_owner = LabelFrame(self.uf_owner, text='User', labelanchor=N)
         lf_owner.grid(column=0, row=0)
 
         self.cb_users = ttk.Combobox(lf_owner, textvariable=self.users_var, justify='center', state='readonly')
         self.cb_users.grid(column=0, row=0)
 
-
-        lf_group = LabelFrame(self.uf_owner, text='Group', labelanchor=N,)
+        lf_group = LabelFrame(self.uf_owner, text='Group', labelanchor=N, )
         lf_group.grid(column=1, row=0)
 
         self.cb_groups = ttk.Combobox(lf_group, textvariable=self.groups_var, justify='center', state='readonly')
         self.cb_groups.grid(column=1, row=0)
+
+        self.cb_search_dir_var = StringVar()
+        self.cb_search_dir = ttk.Combobox(self.user_window, textvariable=self.cb_search_dir_var, justify='center', state='readonly')
 
 
 
@@ -371,7 +388,7 @@ class UI:
         return False
 
     def user_frame_position(self):
-        '''Moves user window with main window'''
+        """Moves user window with main window"""
         x_r = self.root.winfo_x()
         y_r = self.root.winfo_y()
         w_r = self.root.winfo_width()
@@ -388,9 +405,6 @@ class UI:
     def destroy_user_window(self):
         self.user_window.destroy()
         self.user_window = None
-
-
-
 
 
 root = Tk()
