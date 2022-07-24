@@ -7,7 +7,9 @@ import shutil
 from datetime import datetime
 import pwd
 import grp
-
+import platform
+import cpuinfo
+import psutil, getpass
 
 class MainLogic:
 
@@ -23,7 +25,19 @@ class MainLogic:
             stat.S_IROTH, stat.S_IWOTH, stat.S_IXOTH
         ]
 
-    #
+    def get_size(self, bytes, suffix="B"):
+        """
+        Scale bytes to its proper format
+        e.g:
+            1253656 => '1.20MB'
+            1253656678 => '1.17GB'
+        """
+        factor = 1024
+        for unit in ["", "K", "M", "G", "T", "P"]:
+            if bytes < factor:
+                return f"{bytes:.0f}{unit}{suffix}"
+            bytes /= factor
+
     def get_update_tree(self, path, sort_key=1):  # try except  NotADirectoryError: [Errno 20] Not a directory:
 
         self.tree_paths[1].clear()  # s.system("open " + shlex.quote(filename))  import subprocess, os, platformif platform.system() == 'Darwin':        # linux variants    subprocess.call(('xdg-open', filepath))
@@ -36,7 +50,7 @@ class MainLogic:
             info = [
                 item.path,
                 item.name,
-                item.stat().st_size,
+                self.get_size(item.stat().st_size),
                 datetime.fromtimestamp(item.stat().st_mtime).strftime('%b %d %-H:%M'),
                 stat.filemode(item.stat().st_mode),
                 Path(item.path).owner(),
@@ -209,6 +223,12 @@ class MainLogic:
 
     def search_alg(self, search_dir,tv_list, name, destroy_user_window):
         tv=tv_list[0]
+
+        for entry in tv.get_children():
+            tv.delete(entry)
+
+        tv.insert('', END, tags='dir', text=search_dir,
+                  values=('/..', 'UP--DIR'))
         results = []                #first is UP-DIR
         for root, dirs, files in os.walk(search_dir):
             for file in files:
@@ -227,10 +247,8 @@ class MainLogic:
              Path(item).owner(),
              Path(item).group()] for item in results]
 
-        for entry in tv.get_children():
-            tv.delete(entry)
-        tv.insert('', END, tags='dir', text=search_dir,
-                  values=('/..', 'UP--DIR'))
+
+
         for item in results[1:]:
             if Path(item[0]).is_dir():
                 tv.insert('', END, tags='dir', text=item[0],
@@ -242,8 +260,27 @@ class MainLogic:
 
         destroy_user_window()
 
-
-
+    def system_information(self):
+        total, used, free = shutil.disk_usage("/")
+        uname = platform.uname()
+        print("=" * 40, "System Information", "=" * 40)
+        self.sys_info = [
+        ['System: ', uname.system],
+        ['Node Name: ', uname.node],
+        ['Current User: ', getpass.getuser()],
+        ['Release: ', uname.release],
+        ['Version: ', uname.version],
+        ['Machine: ', uname.machine],
+        ['Processor: ', uname.processor],
+        ['Processor: ', cpuinfo.get_cpu_info()["brand_raw"]],
+        ['Physical cores: ', psutil.cpu_count(logical=False)],
+        ['Total cores: ', psutil.cpu_count(logical=True)],
+        ['Total memory: ', self.get_size(psutil.virtual_memory().total)],
+        ['Total disk space: ', self.get_size(total)],
+        ['Used disk space: ', self.get_size(used)],
+        ['Free disk space: ', self.get_size(free)]]
+        for p in self.sys_info:
+            print(p)
 #
 # def treeview_sort_column(self, tv, col, reverse):
 #     lst = [(tv.set(k, col), k) for k in tv.get_children('')]
