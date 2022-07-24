@@ -202,22 +202,22 @@ class UI:
             self.uw_entry.grid(row=1, column=0, columnspan=2, ipady=3, pady=10, padx=20, sticky=NSEW)
             self.uw_label.configure(text='Enter New Name:')
             self.entry_text.set(Path(path).name)
-            self.uw_ok_button.configure(command=lambda: logic.rename(path, self.entry_text, self.destroy_user_window))
-            self.user_window.update()
-            self.user_frame_position()
+            self.ok_button.configure(command=lambda: logic.rename(path, self.entry_text, self.destroy_user_window))
+            self.u_window.update()
+            self.u_window_position()
 
     def info(self, logic):
         self.create_user_window()
         self.uw_label.configure(text='System Information')
-        self.uw_ok_button.configure(command=lambda: self.destroy_user_window)
+        self.ok_button.configure(command=lambda: self.destroy_user_window)
         self.info_frame.grid(row=2, column=0, columnspan=2, pady=10, padx=20)
 
         for i, item in enumerate(logic.system_information()):
             Label(self.info_frame, text=item[0], anchor=W).grid(row=i, column=0, sticky=EW )
             Label(self.info_frame, text=item[1], anchor=W).grid(row=i, column=1, sticky=EW)
 
-        self.user_window.update()
-        self.user_frame_position()
+        self.u_window.update()
+        self.u_window_position()
 
     #
     def change_permisions(self, logic):
@@ -227,10 +227,10 @@ class UI:
             self.uf_perm.grid(row=1, column=0, columnspan=2, pady=10, padx=20)
             self.uw_label.configure(text=f"chmod: {Path(path).name}")
             logic.get_obj_perm(path, self.permissions)
-            self.uw_ok_button.configure(
+            self.ok_button.configure(
                 command=lambda: logic.set_obj_perm(path, self.permissions, self.destroy_user_window))
-            self.user_window.update()
-            self.user_frame_position()
+            self.u_window.update()
+            self.u_window_position()
 
     def change_owner_group(self, logic):
         path = self.active_selection()['text']
@@ -244,10 +244,10 @@ class UI:
             self.cb_users.configure(values=logic.get_users())
             self.users_var.set(Path(path).owner())
 
-            self.uw_ok_button.configure(
+            self.ok_button.configure(
                 command=lambda: logic.obj_chown(path, self.users_var, self.groups_var, self.destroy_user_window))
-            self.user_window.update()
-            self.user_frame_position()
+            self.u_window.update()
+            self.u_window_position()
 
     def search(self, logic, tv):
         self.create_user_window()
@@ -265,10 +265,10 @@ class UI:
         else:
             path = '/'
         print(self.tv_list)
-        self.uw_ok_button.configure(
+        self.ok_button.configure(
             command=lambda: logic.search_alg(path, tv, self.entry_text.get(), self.destroy_user_window))
-        self.user_window.update()
-        self.user_frame_position()
+        self.u_window.update()
+        self.u_window_position()
 
     #
     def toggle_tree_info(self, event, tv):
