@@ -200,9 +200,16 @@ class MainLogic:
         # TODO refresh tvs
         destroy_window()
 
+    def rec_split(self, path):
+        short_path = path.split('/', 1)[1]
+        while len(short_path) > 60:
+            path = path.split('/', 1)[1]
+            short_path = path
+        return f'/{short_path}'
 
-    def search_alg(self, search_dir, name, destroy_user_window):
-        results = []
+    def search_alg(self, search_dir,tv_list, name, destroy_user_window):
+        tv=tv_list[0]
+        results = []                #first is UP-DIR
         for root, dirs, files in os.walk(search_dir):
             for file in files:
                 if name.lower() in file.lower():
@@ -210,16 +217,31 @@ class MainLogic:
             for dir_ in dirs:
                 if name.lower() in dir_.lower():
                     results.append(root + '/' + str(dir_))
-        for item in results:
 
-            info = [
-                item,
-                Path(item).stat().st_size,
-                datetime.fromtimestamp(Path(item).stat().st_mtime).strftime('%b %d %-H:%M'),
-                stat.filemode(Path(item).stat().st_mode),
-                Path(item).owner(),
-                Path(item).group()]
-            print(info)
+        results = [
+            [item,
+             self.rec_split(item),
+             Path(item).stat().st_size,
+             datetime.fromtimestamp(Path(item).stat().st_mtime).strftime('%b %d %-H:%M'),
+             stat.filemode(Path(item).stat().st_mode),
+             Path(item).owner(),
+             Path(item).group()] for item in results]
+
+        for entry in tv.get_children():
+            tv.delete(entry)
+        tv.insert('', END, tags='dir', text=search_dir,
+                  values=('/..', 'UP--DIR'))
+        for item in results[1:]:
+            if Path(item[0]).is_dir():
+                tv.insert('', END, tags='dir', text=item[0],
+                          values=tuple(item[1:]))
+
+            elif Path(item[0]).is_file():
+                tv.insert('', END, tags='file', text=item[0],
+                          values=tuple(item[1:]))
+
+        destroy_user_window()
+
 
 
 #

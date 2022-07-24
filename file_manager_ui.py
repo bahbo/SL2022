@@ -142,7 +142,7 @@ class UI:
             ['F5 Paste', lambda: logic.paste(self.tv_list(), self.tree_paths)],
             ['F6 Chmod', lambda: self.change_permisions(logic)],
             ['F7 Chown', lambda: self.change_owner_group(logic)],
-            ['F8 Search', lambda: self.search(logic)],
+            ['F8 Search', lambda: self.search(logic, self.tv_list())],
             ['F9 Delete', lambda: logic.delete_file_dir(self.active_selection)],
             ['F10 Quit', None]
         ]
@@ -181,7 +181,7 @@ class UI:
         if len(self.tree_1.selection()) > 0:
             self.tv_order = [self.tree_1, self.tree_2]
         elif len(self.tree_2.selection()) > 0:
-            self.tv_order = [self.tree_1, self.tree_2]
+            self.tv_order = [self.tree_2, self.tree_1]
         return self.tv_order
 
     #
@@ -235,7 +235,7 @@ class UI:
             self.user_window.update()
             self.user_frame_position()
 
-    def search(self, logic):
+    def search(self, logic, tv):
         self.create_user_window()
         # self.uf_owner.grid(row=1, column=0, columnspan=2, pady=10, padx=20)
         self.uw_label.configure(text='Search in:')
@@ -250,8 +250,9 @@ class UI:
             path = os.path.expanduser('~')
         else:
             path = '/'
+        print(self.tv_list)
         self.uw_ok_button.configure(
-            command=lambda: logic.search_alg(path, self.entry_text.get(), self.destroy_user_window))
+            command=lambda: logic.search_alg(path, tv, self.entry_text.get(), self.destroy_user_window))
         self.user_window.update()
         self.user_frame_position()
 
