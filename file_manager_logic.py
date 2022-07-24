@@ -16,6 +16,7 @@ class MainLogic:
     def __init__(self):
         #self.current_folder = os.path.expanduser('~')
         #self.current_selection = None
+        self.sys_info = None
         self.tree_paths = [[None], [None], [None]]
         self.copied_object = None
         self.cut_object = None
@@ -263,25 +264,22 @@ class MainLogic:
     def system_information(self):
         total, used, free = shutil.disk_usage("/")
         uname = platform.uname()
-        print("=" * 40, "System Information", "=" * 40)
         self.sys_info = [
-        ['System: ', uname.system],
-        ['Node Name: ', uname.node],
-        ['Current User: ', getpass.getuser()],
-        ['Release: ', uname.release],
-        ['Version: ', uname.version],
-        ['Machine: ', uname.machine],
-        ['Processor: ', uname.processor],
-        ['Processor: ', cpuinfo.get_cpu_info()["brand_raw"]],
-        ['Physical cores: ', psutil.cpu_count(logical=False)],
-        ['Total cores: ', psutil.cpu_count(logical=True)],
-        ['Total memory: ', self.get_size(psutil.virtual_memory().total)],
-        ['Total disk space: ', self.get_size(total)],
-        ['Used disk space: ', self.get_size(used)],
-        ['Free disk space: ', self.get_size(free)]]
-        for p in self.sys_info:
-            print(p)
-#
+            ['System: ', uname.system],
+            ['Current User: ', getpass.getuser()],
+            ['Node Name: ', uname.node],
+            ['Release: ', uname.release],
+            ['Version: ', uname.version],
+            ['Machine: ', uname.machine],
+            ['Processor: ', cpuinfo.get_cpu_info()["brand_raw"]],
+            ['Physical cores: ', psutil.cpu_count(logical=False)],
+            ['Total cores: ', psutil.cpu_count(logical=True)],
+            ['Total memory: ', self.get_size(psutil.virtual_memory().total)],
+            ['Total disk space: ', self.get_size(total)],
+            ['Used disk space: ', self.get_size(used)],
+            ['Free disk space: ', self.get_size(free)]]
+        return self.sys_info
+    #
 # def treeview_sort_column(self, tv, col, reverse):
 #     lst = [(tv.set(k, col), k) for k in tv.get_children('')]
 #     print(lst)

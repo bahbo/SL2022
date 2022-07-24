@@ -24,6 +24,7 @@ class UI:
         self.uw_label = None
         self.user_window = None
         self.tv_order = [None]
+        self.info_frame = Frame(self.user_window)
 
         self.root = main_window
         self.root.title('File Manager')
@@ -135,7 +136,7 @@ class UI:
         self.b_frame.grid(row=4, column=0, columnspan=2, sticky=EW)
 
         bttns = [
-            ['F1 Info', lambda: logic.system_information()],
+            ['F1 Info', lambda: self.info(logic)],
             ['F2 Rename', lambda: self.rename(logic)],
             ['F3 Cut', lambda: logic.cut_file_folder(self.active_selection)],
             ['F4 Copy', lambda: logic.copy_file_folder(self.active_selection)],
@@ -206,15 +207,17 @@ class UI:
             self.user_frame_position()
 
     def info(self, logic):
-        path = self.active_selection()['text']
-        if self.active_selection()['values'][0] != '/..':
-            self.create_user_window()
-            self.uw_entry.grid(row=1, column=0, columnspan=2, ipady=3, pady=10, padx=20, sticky=NSEW)
-            self.uw_label.configure(text='Enter New Name:')
-            self.entry_text.set(Path(path).name)
-            self.uw_ok_button.configure(command=lambda: logic.rename(path, self.entry_text, self.destroy_user_window))
-            self.user_window.update()
-            self.user_frame_position()
+        self.create_user_window()
+        self.uw_label.configure(text='System Information')
+        self.uw_ok_button.configure(command=lambda: self.destroy_user_window)
+        self.info_frame.grid(row=2, column=0, columnspan=2, pady=10, padx=20)
+
+        for i, item in enumerate(logic.system_information()):
+            Label(self.info_frame, text=item[0], anchor=W).grid(row=i, column=0, sticky=EW )
+            Label(self.info_frame, text=item[1], anchor=W).grid(row=i, column=1, sticky=EW)
+
+        self.user_window.update()
+        self.user_frame_position()
 
     #
     def change_permisions(self, logic):
@@ -390,8 +393,7 @@ class UI:
         self.cb_search_dir_var = StringVar()
         self.cb_search_dir = ttk.Combobox(self.user_window, textvariable=self.cb_search_dir_var, justify='center', state='readonly')
 
-
-
+        self.info_frame = Frame(self.user_window)
 
 
     def accepted_characters(self, S):
