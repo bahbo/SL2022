@@ -9,23 +9,7 @@ from tkinter import ttk
 
 
 class MainWindow:
-
     def __init__(self, main_window):
-        self.cb_search_dir_var = None
-        self.cb_users = None
-
-        self.uf_owner = None
-        self.permissions = None
-        self.uf_perm = None
-        self.entry_text = None
-        self.uw_ok_button = None
-        self.uw_entry = None
-        self.uw_label = None
-        self.user_window = None
-        self.tv_order = [None]
-        self.info_frame = Frame(self.user_window)
-        self.user_window = None
-
         self.root = main_window
         self.root.title('File Manager')
 
@@ -108,9 +92,6 @@ class MainWindow:
                                    selectmode='browse')
         self.tree_2.pack(fill='both', side=LEFT, expand=True)
 
-
-
-
         #
         for tree in (self.tree_1, self.tree_2):
             tree["displaycolumns"] = ('#1', '#2', '#3')
@@ -133,13 +114,38 @@ class MainWindow:
         self.b_frame = Frame(self.root)
         self.b_frame.grid(row=4, column=0, columnspan=2, sticky=EW)
 
-        bttns = [
-            'F1 Info', 'F2 Rename', 'F3 Cut', 'F4 Copy', 'F5 Paste',
-            'F6 Chmod', 'F7 Chown', 'F8 Search', 'F9 Delete', 'F10 Quit']
+        self.f1 = ttk.Button(self.b_frame, text='F1 Info', takefocus=0, underline=1)
+        self.f1.grid(row=0, column=0, sticky=EW)
 
-        for button in bttns:
-            setattr(self, button, ttk.Button(self.b_frame, text=button, takefocus=0, underline=1)
-                    .grid(row=0, column=bttns.index(button), sticky=EW))
+        self.f2 =  ttk.Button(self.b_frame, text='F2 Rename', takefocus=0, underline=1)
+        self.f2.grid(row=0, column=1, sticky=EW)
 
-        for x in range(len(bttns)):
+        self.f3 =  ttk.Button(self.b_frame, text='F3 Cut', takefocus=0, underline=1)
+        self.f3.grid(row=0, column=2, sticky=EW)
+
+        self.f4 =  ttk.Button(self.b_frame, text='F4 Copy', takefocus=0, underline=1)
+        self.f4.grid(row=0, column=3, sticky=EW)
+
+        self.f5 =  ttk.Button(self.b_frame, text='F5 Paste', takefocus=0, underline=1)
+        self.f5.grid(row=0, column=4, sticky=EW)
+
+        self.f6 =  ttk.Button(self.b_frame, text='F6 Chmod', takefocus=0, underline=1)
+        self.f6.grid(row=0, column=5, sticky=EW)
+
+        self.f7 =  ttk.Button(self.b_frame, text='F7 Chown', takefocus=0, underline=1)
+        self.f7.grid(row=0, column=6, sticky=EW)
+
+        self.f8 =  ttk.Button(self.b_frame, text='F8 Search', takefocus=0, underline=1)
+        self.f8.grid(row=0, column=7, sticky=EW)
+
+        self.f9 =  ttk.Button(self.b_frame, text='F9 Delete', takefocus=0, underline=1)
+        self.f9.grid(row=0, column=8, sticky=EW)
+
+        self.f10 =  ttk.Button(self.b_frame, text='F10 Quite', takefocus=0, underline=1)
+        self.f10.grid(row=0, column=9, sticky=EW)
+
+
+
+
+        for x in range(9):
             self.b_frame.columnconfigure(x, weight=1, uniform='label')

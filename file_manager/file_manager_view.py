@@ -1,12 +1,6 @@
 from tkinter import *
 from tkinter import ttk
-import os
-from file_manager_logic import MainLogic
-import stat
 from pathlib import Path
-from datetime import datetime
-
-
 from file_manager.main_window import MainWindow
 
 
@@ -21,10 +15,7 @@ class FileManagerView(MainWindow):
 
         # Buttons
         self.ok_button = ttk.Button(self.u_window, text='OK')
-
-
         self.cancel_button = ttk.Button(self.u_window, text='Cancel', command=self.destroy_user_window)
-
 
         # chmod widgets
         self.uf_perm = ttk.Frame(self.u_window)
@@ -74,9 +65,9 @@ class FileManagerView(MainWindow):
         # info
         self.info_frame = Frame(self.u_window)
 
-    def show_user_window(self, main_window):
-        self.u_window = Toplevel(main_window)
-        self.u_window.transient(master=main_window)
+    def show_user_window(self):
+        self.u_window = Toplevel(self.root)
+        self.u_window.transient(self.root)
         self.u_window.wm_attributes('-type', 'splash')
         self.u_window.grab_set()
 
@@ -89,7 +80,7 @@ class FileManagerView(MainWindow):
 
     def info_screen(self, main_window, logic):
         """Show system information."""
-        self.show_user_window(main_window)
+        self.show_user_window()
         self.add_label()
         self.uw_label.configure(text='System Information')
         self.ok_button.grid(row=2, column=0, pady=(0, 10))
@@ -104,17 +95,14 @@ class FileManagerView(MainWindow):
         self.u_window_position(main_window)
 
     #
-    def rename(self, main_window, selection, logic):
+    def rename(self):
         """Rename selected object."""
-        self.show_user_window(main_window)
+        self.show_user_window()
         self.add_buttons()
-        path = selection()['text']
-        if selection()['values'][0] != '/..':
-            self.uw_label.configure(text='Enter New Name:')
-            self.uw_entry.grid(row=1, column=0, columnspan=2, ipady=3, pady=10, padx=20, sticky=NSEW)
-            self.entry_text.set(Path(path).name)
-            self.ok_button.configure(command=lambda: logic.rename(path, self.entry_text, self.destroy_user_window))
-            self.u_window_position(main_window)
+        self.uw_label.configure(text='Enter New Name:')
+        self.uw_entry.grid(row=1, column=0, columnspan=2, ipady=3, pady=10, padx=20, sticky=NSEW)
+
+        self.u_window_position()
 
     def chmod_window(self, main_window, selection, logic):
         """Change objects permissions"""
@@ -156,22 +144,22 @@ class FileManagerView(MainWindow):
             return True
         return False
 
-    def u_window_position(self, main_window):
+    def u_window_position(self):
         """Places user window in the center of main window"""
         self.u_window.update()
-        x_r = main_window.winfo_x()
-        y_r = main_window.winfo_y()
-        w_r = main_window.winfo_width()
-        h_r = main_window.winfo_height()
+        x_r = self.root.winfo_x()
+        y_r = self.root.winfo_y()
+        w_r = self.root.winfo_width()
+        h_r = self.root.winfo_height()
 
         w_uf = self.u_window.winfo_width()
         h_uf = self.u_window.winfo_height()
         self.u_window.geometry(f"+{x_r + (w_r - w_uf) // 2}+{y_r + (h_r - h_uf) // 2}")
 
-    def move_user_window(self, main_window, event):
+    def move_user_window(self, event):
         """Moves user window with main window"""
         if self.u_window is not None:
-            self.u_window_position(main_window)
+            self.u_window_position()
 
     def destroy_user_window(self):
         self.u_window.destroy()

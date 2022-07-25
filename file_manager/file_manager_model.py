@@ -13,7 +13,6 @@ import psutil, getpass
 
 
 class FileManagerModel:
-
     def __init__(self):
         #self.current_folder = os.path.expanduser('~')
         #self.current_selection = None

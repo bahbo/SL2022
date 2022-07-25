@@ -2,25 +2,23 @@
 from tkinter import *
 from tkinter import ttk
 import os
-
-import stat
 from pathlib import Path
-from datetime import datetime
 
 
 class FileManagerPresenter:
-
     def __init__(self, view, model):
         self.last_selection_tree_1 = None
         self.last_selection_tree_2 = None
         self.tree_paths = {view.tree_1: None, view.tree_2: None}
-        view.root.bind("<Configure>", lambda event: view.move_user_window(event, view.root))
+        self.tv_order = [view.tree_1, view.tree_2]
+
+        view.root.bind("<Configure>", lambda event: view.move_user_window(event))
 
         view.tree_1.bind('<Double-Button-1>', lambda event: self.item_selected_click(event, model, view, view.tree_1))
         view.tree_2.bind('<Double-Button-1>', lambda event: self.item_selected_click(event, model, view, view.tree_2))
 
-        view.tree_1.bind('<Return>', lambda event: self.item_selected_enter(model, view.tree_1))
-        view.tree_2.bind('<Return>', lambda event: self.item_selected_enter(model, view.tree_2))
+        view.tree_1.bind('<Return>', lambda event: self.item_selected_enter(model, view, view.tree_1))
+        view.tree_2.bind('<Return>', lambda event: self.item_selected_enter(model, view, view.tree_2))
 
         view.tree_1.bind('<FocusIn>', lambda event: self.toggle_tv(event, view.tree_1, view))
         view.tree_2.bind('<FocusIn>', lambda event: self.toggle_tv(event, view.tree_2, view))
@@ -28,13 +26,15 @@ class FileManagerPresenter:
         view.tree_1.bind('<F5>', lambda event: self.toggle_tree_info(event, view.tree_1))
         view.tree_2.bind('<F5>', lambda event: self.toggle_tree_info(event, view.tree_2))
 
-        view.tree_1.bind('<<TreeviewSelect>>', lambda event: self.active_selection(event, view))
-        view.tree_2.bind('<<TreeviewSelect>>', lambda event: self.active_selection(event, view))
+        view.tree_1.bind('<<TreeviewSelect>>', lambda event: self.active_selection(view))
+        view.tree_2.bind('<<TreeviewSelect>>', lambda event: self.active_selection(view))
 
-        ######
-
-        #
-
+        #view.f1.configure(command=lambda: self.rename(model, view))
+        view.f2.configure(command=lambda: self.rename(model, view))
+        # bttns = [
+        #     'F1 Info', 'F2 Rename', 'F3 Cut', 'F4 Copy', 'F5 Paste',
+        #     'F6 Chmod', 'F7 Chown', 'F8 Search', 'F9 Delete', 'F10 Quit']
+    #
     def tv_list(self, view):
         if len(view.tree_1.selection()) > 0:
             self.tv_order = [view.tree_1, view.tree_2]
@@ -42,9 +42,8 @@ class FileManagerPresenter:
             self.tv_order = [view.tree_2, view.tree_1]
         return self.tv_order
 
-        #
-
-    def active_selection(self, event, view):
+    #
+    def active_selection(self, view, *args):
         if len(view.tree_1.selection()) > 0:
             view.active_pos_1.set(view.tree_1.item(view.tree_1.selection())['values'][0])
             return view.tree_1.item(view.tree_1.focus())
@@ -54,16 +53,15 @@ class FileManagerPresenter:
 
         #
 
-    def rename(self, model):
-        path = self.active_selection()['text']
-        if self.active_selection()['values'][0] != '/..':
-            self.create_user_window()
-            self.uw_entry.grid(row=1, column=0, columnspan=2, ipady=3, pady=10, padx=20, sticky=NSEW)
-            self.uw_label.configure(text='Enter New Name:')
-            self.entry_text.set(Path(path).name)
-            self.ok_button.configure(command=lambda: model.rename(path, self.entry_text, self.destroy_user_window))
-            self.u_window.update()
-            self.u_window_position()
+    def rename(self, model, view):
+        path = self.active_selection(view)['text']
+        if self.active_selection(view)['values'][0] != '/..':
+            view.show_user_window()
+            view.rename()
+            view.entry_text.set(Path(path).name)
+            view.ok_button.configure(command=lambda: model.rename(path, view.entry_text, view.destroy_user_window))
+            view.u_window.update()
+            view.u_window_position()
 
     def info(self, model):
         self.create_user_window()
@@ -92,9 +90,9 @@ class FileManagerPresenter:
             self.u_window.update()
             self.u_window_position()
 
-    def change_owner_group(self, model):
-        path = self.active_selection()['text']
-        if self.active_selection()['values'][0] != '/..':
+    def change_owner_group(self, view, model):
+        path = self.active_selection(view)['text']
+        if self.active_selection(view)['values'][0] != '/..':
             self.create_user_window()
             self.uf_owner.grid(row=1, column=0, columnspan=2, pady=10, padx=20)
             self.uw_label.configure(text=f"chown: {Path(path).name}")
@@ -109,7 +107,7 @@ class FileManagerPresenter:
             self.u_window.update()
             self.u_window_position()
 
-    def search(self, model, tv):
+    def search(self, model, view, tv):
         self.create_user_window()
         # self.uf_owner.grid(row=1, column=0, columnspan=2, pady=10, padx=20)
         self.uw_label.configure(text='Search in:')
@@ -119,7 +117,7 @@ class FileManagerPresenter:
         self.cb_search_dir.configure(values=['current dir', 'home', 'all'])
         self.cb_search_dir_var.set('current dir')
         if self.cb_search_dir_var.get() == 'current dir':
-            path = self.active_selection()['text']
+            path = self.active_selection(view)['text']
         elif self.cb_search_dir_var.get() == 'home':
             path = os.path.expanduser('~')
         else:
