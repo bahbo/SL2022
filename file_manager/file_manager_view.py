@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from tkinter import *
 from tkinter import ttk
 import os
@@ -8,32 +7,36 @@ from pathlib import Path
 from datetime import datetime
 
 
-class UserWindow:
-    def __init__(self, main_window, logic):
-        self.u_window = Toplevel(main_window)
-        self.u_window.transient(master=main_window)
-        self.u_window.wm_attributes('-type', 'splash')
-        self.u_window.grab_set()
+from file_manager.main_window import MainWindow
 
-        # Buttons
-        self.ok_button = ttk.Button(self.u_window, text='OK')
-        self.ok_button.grid(row=3, column=0, pady=(0, 10))
 
-        self.cancel_button = ttk.Button(self.u_window, text='Cancel', command=self.destroy_user_window)
-        self.cancel_button.grid(row=3, column=1, pady=(0, 10))
-
-        # Label
+class FileManagerView(MainWindow):
+    def __init__(self, main_window):
+        super().__init__(main_window)
+        self.u_window = None
         self.uw_label = ttk.Label(self.u_window)
-        self.uw_label.grid(row=0, column=0, columnspan=2, pady=(10, 0))
-
-        # Entry
         self.entry_text = StringVar()
         vcmd = (main_window.register(self.accepted_characters), '%S')
         self.uw_entry = Entry(self.u_window, width=25, textvariable=self.entry_text, validate='key', vcmd=vcmd)
 
+        # Buttons
+        self.ok_button = ttk.Button(self.u_window, text='OK')
+
+
+        self.cancel_button = ttk.Button(self.u_window, text='Cancel', command=self.destroy_user_window)
+
+
         # chmod widgets
         self.uf_perm = ttk.Frame(self.u_window)
-        var_irusr, var_iwusr, var_ixusr, var_irgrp, var_iwgrp, var_ixgrp, var_iroth, var_iwoth, var_ixoth = IntVar()
+        var_irusr = IntVar()
+        var_iwusr = IntVar()
+        var_ixusr = IntVar()
+        var_irgrp = IntVar()
+        var_iwgrp = IntVar()
+        var_ixgrp = IntVar()
+        var_iroth = IntVar()
+        var_iwoth = IntVar()
+        var_ixoth = IntVar()
 
         self.permissions = [
             ['Read by owner', var_irusr],
@@ -71,54 +74,83 @@ class UserWindow:
         # info
         self.info_frame = Frame(self.u_window)
 
-    def info_screen(self, root, logic):
+    def show_user_window(self, main_window):
+        self.u_window = Toplevel(main_window)
+        self.u_window.transient(master=main_window)
+        self.u_window.wm_attributes('-type', 'splash')
+        self.u_window.grab_set()
+
+    def add_label(self):
+        self.uw_label.grid(row=0, column=0, columnspan=2, pady=(10, 0))
+
+    def add_buttons(self):
+        self.ok_button.grid(row=2, column=0, pady=(0, 10))
+        self.cancel_button.grid(row=2, column=1, pady=(0, 10))
+
+    def info_screen(self, main_window, logic):
         """Show system information."""
+        self.show_user_window(main_window)
+        self.add_label()
         self.uw_label.configure(text='System Information')
+        self.ok_button.grid(row=2, column=0, pady=(0, 10))
         self.ok_button.configure(command=lambda: self.destroy_user_window)
-        self.info_frame.grid(row=2, column=0, columnspan=2, pady=10, padx=20)
+        self.info_frame.grid(row=1, column=0, columnspan=2, pady=10, padx=20)
 
         for i, item in enumerate(logic.system_information()):
             Label(self.info_frame, text=item[0], anchor=W).grid(row=i, column=0, sticky=EW)
             Label(self.info_frame, text=item[1], anchor=W).grid(row=i, column=1, sticky=EW)
 
-        self.u_window.update()
-        self.u_window_position(root)
+        self.cancel_button.grid_forget()
+        self.u_window_position(main_window)
 
-    def rename(self, selection, logic):
+    #
+    def rename(self, main_window, selection, logic):
         """Rename selected object."""
+        self.show_user_window(main_window)
+        self.add_buttons()
         path = selection()['text']
         if selection()['values'][0] != '/..':
             self.uw_label.configure(text='Enter New Name:')
             self.uw_entry.grid(row=1, column=0, columnspan=2, ipady=3, pady=10, padx=20, sticky=NSEW)
             self.entry_text.set(Path(path).name)
             self.ok_button.configure(command=lambda: logic.rename(path, self.entry_text, self.destroy_user_window))
+            self.u_window_position(main_window)
 
-            self.u_window.update()
-            self.u_window_position()
-
-    def chmod_window(self, selection, logic):
-        """Change objects permisions"""
+    def chmod_window(self, main_window, selection, logic):
+        """Change objects permissions"""
+        self.show_user_window(main_window)
+        self.add_buttons()
         path = selection()['text']
         if selection()['values'][0] != '/..':
-
-            self.uf_perm.grid(row=1, column=0, columnspan=2, pady=10, padx=20)
             self.uw_label.configure(text=f"chmod: {Path(path).name}")
+            self.uf_perm.grid(row=1, column=0, columnspan=2, pady=10, padx=20)
             logic.get_obj_perm(path, self.permissions)
             self.ok_button.configure(
                 command=lambda: logic.set_obj_perm(path, self.permissions, self.destroy_user_window))
 
+            self.u_window_position(main_window)
+
+    #
+    def chown_window(self, main_window, selection, logic):
+        self.show_user_window(main_window)
+        self.add_buttons()
+        """Change objects group or/and owner"""
+        path = selection()['text']
+        if selection()['values'][0] != '/..':
+            self.uw_label.configure(text=f"chown: {Path(path).name}")
+            self.uf_owner.grid(row=1, column=0, columnspan=2, pady=10, padx=20)
+
+            self.cb_groups.configure(values=logic.get_groups())
+            self.groups_var.set(Path(path).group())
+            self.cb_users.configure(values=logic.get_users())
+            self.users_var.set(Path(path).owner())
+
+            self.ok_button.configure(
+                command=lambda: logic.obj_chown(path, self.users_var, self.groups_var, self.destroy_user_window))
             self.u_window.update()
-            self.u_window_position()
+            self.u_window_position(main_window)
 
-
-
-
-
-
-
-    def chown_window(self):
-        pass
-
+    #
     def accepted_characters(self, S):
         if S != '/':
             return True
@@ -126,6 +158,7 @@ class UserWindow:
 
     def u_window_position(self, main_window):
         """Places user window in the center of main window"""
+        self.u_window.update()
         x_r = main_window.winfo_x()
         y_r = main_window.winfo_y()
         w_r = main_window.winfo_width()
@@ -135,10 +168,10 @@ class UserWindow:
         h_uf = self.u_window.winfo_height()
         self.u_window.geometry(f"+{x_r + (w_r - w_uf) // 2}+{y_r + (h_r - h_uf) // 2}")
 
-    def move_user_window(self, event):
+    def move_user_window(self, main_window, event):
         """Moves user window with main window"""
         if self.u_window is not None:
-            self.u_window_position()
+            self.u_window_position(main_window)
 
     def destroy_user_window(self):
         self.u_window.destroy()

@@ -11,7 +11,8 @@ import platform
 import cpuinfo
 import psutil, getpass
 
-class MainLogic:
+
+class FileManagerModel:
 
     def __init__(self):
         #self.current_folder = os.path.expanduser('~')

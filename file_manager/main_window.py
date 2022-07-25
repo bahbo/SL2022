@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 from tkinter import *
 from tkinter import ttk
-import os
-from file_manager_logic import MainLogic
-import stat
-from pathlib import Path
-from datetime import datetime
+# import os
+# from file_manager_logic import MainLogic
+# import stat
+# from pathlib import Path
+# from datetime import datetime
 
 
 class MainWindow:
 
-    def __init__(self, main_window, logic):
+    def __init__(self, main_window):
         self.cb_search_dir_var = None
         self.cb_users = None
 
@@ -101,15 +101,15 @@ class MainWindow:
         self.tree_1 = ttk.Treeview(self.lf_1, columns=('#1', '#2', '#3', '#4', '#5', '#6'), show='headings',
                                    selectmode='browse')
         self.tree_1.pack(fill='both', side=LEFT, expand=True)
-        self.last_selection_tree_1 = None
+
         self.tree_1.focus_set()
 
         self.tree_2 = ttk.Treeview(self.lf_2, columns=('#1', '#2', '#3', '#4', '#5', '#6'), show='headings',
                                    selectmode='browse')
         self.tree_2.pack(fill='both', side=LEFT, expand=True)
-        self.last_selection_tree_2 = None
 
-        self.tree_paths = {self.tree_1: None, self.tree_2: None}
+
+
 
         #
         for tree in (self.tree_1, self.tree_2):
@@ -130,28 +130,16 @@ class MainWindow:
         #
         # ttk.Separator(self.root, orient='horizontal', ).grid(row=3, column=0, sticky="ew")
 
-
-
         self.b_frame = Frame(self.root)
         self.b_frame.grid(row=4, column=0, columnspan=2, sticky=EW)
 
         bttns = [
-            ['F1 Info', lambda: self.info(logic)],
-            ['F2 Rename', lambda: self.rename(logic)],
-            ['F3 Cut', lambda: logic.cut_file_folder(self.active_selection)],
-            ['F4 Copy', lambda: logic.copy_file_folder(self.active_selection)],
-            ['F5 Paste', lambda: logic.paste(self.tv_list(), self.tree_paths)],
-            ['F6 Chmod', lambda: self.change_permisions(logic)],
-            ['F7 Chown', lambda: self.change_owner_group(logic)],
-            ['F8 Search', lambda: self.search(logic, self.tv_list())],
-            ['F9 Delete', lambda: logic.delete_file_dir(self.active_selection)],
-            ['F10 Quit', None]
-        ]
+            'F1 Info', 'F2 Rename', 'F3 Cut', 'F4 Copy', 'F5 Paste',
+            'F6 Chmod', 'F7 Chown', 'F8 Search', 'F9 Delete', 'F10 Quit']
 
         for button in bttns:
-            setattr(self, button[0],
-                    ttk.Button(self.b_frame, command=button[1]).grid(row=0, column=bttns.index(button), sticky=EW))
+            setattr(self, button, ttk.Button(self.b_frame, text=button, takefocus=0, underline=1)
+                    .grid(row=0, column=bttns.index(button), sticky=EW))
 
         for x in range(len(bttns)):
-            self.b_frame.grid_slaves(column=x)[0].config(text=bttns[x][0], takefocus=0, underline=1, )
             self.b_frame.columnconfigure(x, weight=1, uniform='label')
